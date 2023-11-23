@@ -37,7 +37,9 @@ namespace m1
         float elapsedTime;
         std::unordered_map<std::string, Mesh*> tankObjects;
         std::unordered_map<std::string, Texture2D*> textures;
-        int animationIndex = 1;
+        int animationIndex = 250;
         glm::vec3 lastWheelPosition;
+        glm::vec3 tankTranslate = glm::vec3(0, 0, 0);
+        glm::vec3 tankRotate = glm::vec3(0, 0, 0);
     };
 }   // namespace m1

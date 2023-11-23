@@ -29,20 +29,20 @@ void InitTema2::CreateTankEntity()
     const string sourceObjDirTank = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "tank", "terog");
     {
         Mesh* mesh = new Mesh("body");
-        mesh->LoadMesh(sourceObjDirTank, "tank_txt.obj");
+        mesh->LoadMesh(sourceObjDirTank, "body.obj");
         tankObjects["body"] = mesh;
     }
 
     {
 		Mesh* mesh = new Mesh("tun");
-		mesh->LoadMesh(sourceObjDirTank, "tun.obj");
+		mesh->LoadMesh(sourceObjDirTank, "turet.obj");
 		tankObjects["tun"] = mesh;
 	}
 
     {
-        Mesh* mesh = new Mesh("wheel");
-        mesh->LoadMesh(sourceObjDirTank, "wheel.obj");
-        tankObjects["wheel"] = mesh;
+        Mesh* mesh = new Mesh("turet");
+        mesh->LoadMesh(sourceObjDirTank, "tun.obj");
+        tankObjects["turet"] = mesh;
     }
 
     // for to 250 load wheel
@@ -54,18 +54,6 @@ void InitTema2::CreateTankEntity()
 		mesh->LoadMesh(sourceObjDirTank, nameObj);
 		tankObjects[name] = mesh;
 	}
- /*
-    {
-		Mesh* mesh = new Mesh("capel");
-		mesh->LoadMesh(sourceObjDir, "capel.obj");
-		tankObjects["capel"] = mesh;
-	}
-
-    {
-		Mesh* mesh = new Mesh("senil");
-		mesh->LoadMesh(sourceObjDir, "senil.obj");
-		tankObjects["senil"] = mesh;
-	}*/
 }
 
 void InitTema2::ParseTextures()
@@ -157,48 +145,132 @@ void InitTema2::RenderTexturedMesh(Mesh* mesh, Shader* shader, const glm::mat4& 
 
 void m1::InitTema2::RenderTankEntity()
 {
+    float tankScale = 0.35f;
+    float wheelScale = 0.37f;
+    glm::vec3 tankAdjustedTranslate = tankTranslate / tankScale;
+    glm::vec3 wheelAdjustedTranslate = tankTranslate / wheelScale;
+    glm::vec3 tankAdjustedRotate = tankRotate;
+    glm::vec3 wheelAdjustedRotate = tankRotate;
     {
         glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.0f, -1.1f, 1.2f));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
+        // Translate to origin
+        modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, -0.1f, 0.0f));
+        modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
         RenderMesh(tankObjects["body"], shaders["ShaderTank"], modelMatrix);
     }
 
    {
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(10.0f, 2.25f, 0));
-        RenderMesh(tankObjects["tun"], shaders["ShaderTank"], modelMatrix);
-    }
-
-   {
        glm::mat4 modelMatrix = glm::mat4(1);
-       modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 7.0f, 0));
-       RenderMesh(tankObjects["wheel"], shaders["ShaderTank"], modelMatrix);
+       modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
+       modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.05f, 1.75f, -1.75f));
+       modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
+       RenderMesh(tankObjects["turet"], shaders["ShaderTank"], modelMatrix);
    }
 
    {
-       // Rend the wheel at animationIndex
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
+        modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(6.0f, 5.075f, -0.9f));
+        modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
+        RenderMesh(tankObjects["tun"], shaders["ShaderTank"], modelMatrix);
+   }
+   
+   {
+       // Rend the wheel 1 out of 8 at animationIndex
        string name = "wheel" + to_string(animationIndex);
        glm::mat4 modelMatrix = glm::mat4(1);
-       modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 9.0f, 0));
-       // If animation index is = 1 then translate the wheel to the last position
-       if (animationIndex == 1)
-       {
-		   modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, 0));
-	   }
+       modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
+       modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(3.4f, -0.39f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, wheelAdjustedTranslate);
        RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
    }
-   /*
-    {
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.5f, -0.2f, 0));
-        RenderTexturedMesh(tankObjects["capel"], shaders["ShaderTank"], modelMatrix);
-    }
 
-    {
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, 0));
-        RenderMeshTexture(tankObjects["senil"], shaders["ShaderTank"], modelMatrix);
-    }*/
+   {
+       // Rend the wheel 2 out of 8 at animationIndex
+       string name = "wheel" + to_string(animationIndex);
+       glm::mat4 modelMatrix = glm::mat4(1);
+       modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
+       modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(0.9f, -0.42f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, wheelAdjustedTranslate);
+       RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+   }
+
+   {
+       // Rend the wheel 3  out of 8 at animationIndex
+       string name = "wheel" + to_string(animationIndex);
+       glm::mat4 modelMatrix = glm::mat4(1);
+       modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
+       modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.6f, -0.42f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, wheelAdjustedTranslate);
+       RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+   }
+
+   {
+       // Rend the wheel 4 out of 8 at animationIndex
+       string name = "wheel" + to_string(animationIndex);
+       glm::mat4 modelMatrix = glm::mat4(1);
+       modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
+       modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.7f, -0.42f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, wheelAdjustedTranslate);
+       RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+   }
+
+   int animationIndexReverse = 250 - animationIndex + 1;
+   {
+       // Rend the wheel 5 out of 8 at animationIndex
+       string name = "wheel" + to_string(animationIndexReverse);
+       glm::mat4 modelMatrix = glm::mat4(1);
+       modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
+       modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
+       modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(3.4f, -0.39f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
+       RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+   }
+
+   {
+       // Rend the wheel 6 out of 8 at animationIndex
+       string name = "wheel" + to_string(animationIndexReverse);
+       glm::mat4 modelMatrix = glm::mat4(1);
+       modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
+       modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
+       modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(0.9f, -0.42f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
+       RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+   }
+
+   {
+       // Rend the wheel 7 out of 8 at animationIndex
+       string name = "wheel" + to_string(animationIndexReverse);
+       glm::mat4 modelMatrix = glm::mat4(1);
+       modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
+       modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
+       modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.6f, -0.42f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
+       RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+   }
+
+   {
+	   // Rend the wheel 8 out of 8 at animationIndex
+	   string name = "wheel" + to_string(animationIndexReverse);
+	   glm::mat4 modelMatrix = glm::mat4(1);
+	   modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
+       modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
+       modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
+	   modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.7f, -0.42f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
+       RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+   }
 }
 
 void InitTema2::Init()
@@ -232,24 +304,69 @@ void InitTema2::Update(float deltaTimeSeconds)
 {
     RenderTankEntity();
 
-    // If we press W, increase the animation index
-    if (window->KeyHold(GLFW_KEY_W))
+    // If right click is not pressed
+    if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
     {
-		animationIndex++;
-        if (animationIndex > 250)
+        // If we press W, increase the animation index
+        if (window->KeyHold(GLFW_KEY_W))
         {
-			animationIndex = 1;
-		}
-	}
+            animationIndex--;
+            if (animationIndex < 1)
+            {
+                animationIndex = 250;
+            }
 
-    // If we press S, decrease the animation index
-    if (window->KeyHold(GLFW_KEY_S))
-    {
-        animationIndex--;
-        if (animationIndex < 1)
+            // Increase the tankTranslate
+            tankTranslate.x += 0.007f;
+        }
+
+        if (window->KeyHold(GLFW_KEY_R))
         {
-			animationIndex = 250;
+            animationIndex--;
+            if (animationIndex < 1)
+            {
+                animationIndex = 250;
+            }
+
+            // Increase the tankTranslate
+            tankTranslate.x += 0.012f;
+        }
+
+
+        // If we press S, decrease the animation index
+        if (window->KeyHold(GLFW_KEY_S))
+        {
+            animationIndex++;
+            if (animationIndex > 250)
+            {
+                animationIndex = 1;
+            }
+
+            // Decrease the tankTranslate
+            tankTranslate.x -= 0.003f;
+        }
+
+        // On key A, rotate the tank to the left
+        if (window->KeyHold(GLFW_KEY_A))
+        {
+			tankRotate.y += 0.002f;
+            animationIndex++;
+            if (animationIndex > 250)
+            {
+                animationIndex = 1;
+            }
 		}
+
+        // On key D, rotate the tank to the right
+        if (window->KeyHold(GLFW_KEY_D))
+        {
+            tankRotate.y -= 0.002f;
+            animationIndex++;
+            if (animationIndex > 250)
+            {
+                animationIndex = 1;
+            }
+        }
     }
 
 

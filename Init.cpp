@@ -151,10 +151,12 @@ void m1::InitTema2::RenderTankEntity()
     glm::vec3 wheelAdjustedTranslate = tankTranslate / wheelScale;
     glm::vec3 tankAdjustedRotate = tankRotate;
     glm::vec3 wheelAdjustedRotate = tankRotate;
+    int animationIndexReverse = 250 - animationIndex + 1;
+
+
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
-        // Translate to origin
         modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, -0.1f, 0.0f));
         modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
@@ -181,7 +183,7 @@ void m1::InitTema2::RenderTankEntity()
    
    {
        // Rend the wheel 1 out of 8 at animationIndex
-       string name = "wheel" + to_string(animationIndex);
+       string name = "wheel" + to_string(animationIndexReverse);
        glm::mat4 modelMatrix = glm::mat4(1);
        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
@@ -192,7 +194,7 @@ void m1::InitTema2::RenderTankEntity()
 
    {
        // Rend the wheel 2 out of 8 at animationIndex
-       string name = "wheel" + to_string(animationIndex);
+       string name = "wheel" + to_string(animationIndexReverse);
        glm::mat4 modelMatrix = glm::mat4(1);
        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
@@ -203,7 +205,7 @@ void m1::InitTema2::RenderTankEntity()
 
    {
        // Rend the wheel 3  out of 8 at animationIndex
-       string name = "wheel" + to_string(animationIndex);
+       string name = "wheel" + to_string(animationIndexReverse);
        glm::mat4 modelMatrix = glm::mat4(1);
        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
@@ -214,7 +216,7 @@ void m1::InitTema2::RenderTankEntity()
 
    {
        // Rend the wheel 4 out of 8 at animationIndex
-       string name = "wheel" + to_string(animationIndex);
+       string name = "wheel" + to_string(animationIndexReverse);
        glm::mat4 modelMatrix = glm::mat4(1);
        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
@@ -223,10 +225,9 @@ void m1::InitTema2::RenderTankEntity()
        RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
    }
 
-   int animationIndexReverse = 250 - animationIndex + 1;
    {
        // Rend the wheel 5 out of 8 at animationIndex
-       string name = "wheel" + to_string(animationIndexReverse);
+       string name = "wheel" + to_string(animationIndex);
        glm::mat4 modelMatrix = glm::mat4(1);
        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
@@ -238,7 +239,7 @@ void m1::InitTema2::RenderTankEntity()
 
    {
        // Rend the wheel 6 out of 8 at animationIndex
-       string name = "wheel" + to_string(animationIndexReverse);
+       string name = "wheel" + to_string(animationIndex);
        glm::mat4 modelMatrix = glm::mat4(1);
        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
@@ -250,7 +251,7 @@ void m1::InitTema2::RenderTankEntity()
 
    {
        // Rend the wheel 7 out of 8 at animationIndex
-       string name = "wheel" + to_string(animationIndexReverse);
+       string name = "wheel" + to_string(animationIndex);
        glm::mat4 modelMatrix = glm::mat4(1);
        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
@@ -262,7 +263,7 @@ void m1::InitTema2::RenderTankEntity()
 
    {
 	   // Rend the wheel 8 out of 8 at animationIndex
-	   string name = "wheel" + to_string(animationIndexReverse);
+	   string name = "wheel" + to_string(animationIndex);
 	   glm::mat4 modelMatrix = glm::mat4(1);
 	   modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
@@ -310,10 +311,18 @@ void InitTema2::Update(float deltaTimeSeconds)
         // If we press W, increase the animation index
         if (window->KeyHold(GLFW_KEY_W))
         {
-            animationIndex--;
-            if (animationIndex < 1)
+            if (animationSkipper == true)
             {
-                animationIndex = 250;
+                animationIndex--;
+                if (animationIndex < 1)
+                {
+                    animationIndex = 250;
+                }
+                animationSkipper = false;
+            } 
+            else
+            {
+                animationSkipper = true;
             }
 
             // Increase the tankTranslate
@@ -322,25 +331,41 @@ void InitTema2::Update(float deltaTimeSeconds)
 
         if (window->KeyHold(GLFW_KEY_R))
         {
-            animationIndex--;
-            if (animationIndex < 1)
+            if (animationSkipper == true)
             {
-                animationIndex = 250;
+                animationIndex--;
+                if (animationIndex < 1)
+                {
+                    animationIndex = 250;
+                }
+                animationSkipper = false;
             }
+            else
+            {
+				animationSkipper = true;
+			}
 
             // Increase the tankTranslate
-            tankTranslate.x += 0.012f;
+            tankTranslate.x += 0.030f;
         }
 
 
         // If we press S, decrease the animation index
         if (window->KeyHold(GLFW_KEY_S))
         {
-            animationIndex++;
-            if (animationIndex > 250)
+            if (animationSkipper == true)
             {
-                animationIndex = 1;
-            }
+				animationIndex++;
+                if (animationIndex > 250)
+                {
+					animationIndex = 1;
+				}
+				animationSkipper = false;
+			}
+            else
+            {
+				animationSkipper = true;
+			}
 
             // Decrease the tankTranslate
             tankTranslate.x -= 0.003f;
@@ -349,22 +374,40 @@ void InitTema2::Update(float deltaTimeSeconds)
         // On key A, rotate the tank to the left
         if (window->KeyHold(GLFW_KEY_A))
         {
-			tankRotate.y += 0.002f;
-            animationIndex++;
-            if (animationIndex > 250)
+            tankRotate.y += 0.002f;
+			
+            if (animationSkipper == true)
             {
-                animationIndex = 1;
+                animationIndex++;
+                if (animationIndex > 250)
+                {
+                    animationIndex = 1;
+                }
+                animationSkipper = false;
             }
-		}
+            else
+            {
+				animationSkipper = true;
+			}
+        }
 
         // On key D, rotate the tank to the right
         if (window->KeyHold(GLFW_KEY_D))
         {
             tankRotate.y -= 0.002f;
-            animationIndex++;
-            if (animationIndex > 250)
+
+            if (animationSkipper == true)
             {
-                animationIndex = 1;
+				animationIndex--;
+                if (animationIndex < 1)
+                {
+					animationIndex = 250;
+				}
+				animationSkipper = false;
+			}
+            else
+            {
+                animationSkipper = true;
             }
         }
     }
@@ -372,6 +415,7 @@ void InitTema2::Update(float deltaTimeSeconds)
 
     //elapsedTime = Engine::GetElapsedTime();
 }
+
 
 
 void InitTema2::FrameEnd()

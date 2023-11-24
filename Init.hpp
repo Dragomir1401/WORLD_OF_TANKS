@@ -33,6 +33,7 @@ namespace m1
         void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
+        
 
         float elapsedTime;
         std::unordered_map<std::string, Mesh*> tankObjects;
@@ -41,5 +42,6 @@ namespace m1
         glm::vec3 lastWheelPosition;
         glm::vec3 tankTranslate = glm::vec3(0, 0, 0);
         glm::vec3 tankRotate = glm::vec3(0, 0, 0);
+        bool animationSkipper = false;
     };
 }   // namespace m1

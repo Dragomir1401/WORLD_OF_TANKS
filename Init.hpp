@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "components/simple_scene.h"
+#include "lab_camera.hpp"
 
 
 namespace m1
@@ -17,9 +18,7 @@ namespace m1
 
      private:
         void CreateTankEntity();
-        void RenderTexturedMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1 = NULL, Texture2D* texture2 = NULL);
         void ParseTextures();
-        void RenderMeshTexture(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1 = NULL, Texture2D* texture2 = NULL);
         void RenderTankEntity();
         void FrameStart() override;
         void Update(float deltaTimeSeconds) override;
@@ -36,6 +35,8 @@ namespace m1
         void UpdateAnimationTrackers(bool& animationIncreaser);
         void DetectInput();
         glm::vec3 ComputeRotationBasedOnMouse();
+        void PositionCameraThirdPerson(int deltaX, int deltaY);
+        void RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix);
         
 
         float elapsedTime;
@@ -47,8 +48,14 @@ namespace m1
         glm::vec3 tankRotate = glm::vec3(0, 0, 0);
         glm::vec3 wheelTilt = glm::vec3(0, 0, 0);
         int animationSkipper = 0;
-        glm::vec3 bodyTankPosition = glm::vec3(0, 0, 0);
-        glm::vec3 bodyTankCenter = glm::vec3(0, 0, 0);
-        glm::vec3 bodyMM = glm::vec3(0, 0, 0);
+        glm::mat4 projectionMatrix;
+        glm::vec3 initialCameraPosition = glm::vec3(0, 0, 0);
+        Camera* camera;
+        float right;
+        float left;
+        float bottom;
+        float top;
+        float fov;
+        float cameraSpeed = 200.0f;
     };
 }   // namespace m1

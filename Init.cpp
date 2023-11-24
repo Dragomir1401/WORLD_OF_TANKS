@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "init.hpp"
 
 using namespace std;
 using namespace m1;
@@ -58,89 +59,6 @@ void InitTema2::CreateTankEntity()
 
 void InitTema2::ParseTextures()
 {
-    const string sourceTextureDir = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "textures");
-
-    // Create a texture object for tank_green
-    Texture2D* texture = new Texture2D();
-    texture->Load2D(PATH_JOIN(sourceTextureDir, "tank_green.png").c_str(), GL_REPEAT);
-    textures["tank_green"] = texture;
-}
-
-void InitTema2::RenderMeshTexture(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1, Texture2D* texture2)
-{
-    if (!mesh || !shader || !shader->program)
-        return;
-
-    // Render an object using the specified shader and the specified position
-    shader->Use();
-    glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(GetSceneCamera()->GetViewMatrix()));
-    glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(GetSceneCamera()->GetProjectionMatrix()));
-    glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-
-    //// Set any other shader uniforms that you need
-    int loc_texture_1 = glGetUniformLocation(shader->program, "texture_1");
-    int loc_texture_2 = glGetUniformLocation(shader->program, "texture_2");
-
-    if (texture1)
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1->GetTextureID());
-        glUniform1i(loc_texture_1, 0);
-    }
-
-    if (texture2)
-    {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2->GetTextureID());
-        glUniform1i(loc_texture_2, 1);
-    }
-
-    mesh->Render();
-}
-
-void InitTema2::RenderTexturedMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1, Texture2D* texture2)
-{
-    if (!mesh || !shader || !shader->GetProgramID())
-        return;
-
-    // Render an object using the specified shader and the specified position
-    glUseProgram(shader->program);
-
-    // Bind model matrix
-    GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
-    glUniformMatrix4fv(loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-
-    // Bind view matrix
-    glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
-    int loc_view_matrix = glGetUniformLocation(shader->program, "View");
-    glUniformMatrix4fv(loc_view_matrix, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-
-    // Bind projection matrix
-    glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
-    int loc_projection_matrix = glGetUniformLocation(shader->program, "Projection");
-    glUniformMatrix4fv(loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-
-    // Set any other shader uniforms that you need
-    int loc_texture_1 = glGetUniformLocation(shader->program, "texture_1");
-    int loc_texture_2 = glGetUniformLocation(shader->program, "texture_2");
-
-    if (texture1)
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1->GetTextureID());
-        glUniform1i(loc_texture_1, 0);
-    }
-
-    if (texture2)
-    {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2->GetTextureID());
-        glUniform1i(loc_texture_2, 1);
-    }
-
-    // Draw the object
-    glBindVertexArray(mesh->GetBuffers()->m_VAO);
-    glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
 }
 
 void m1::InitTema2::RenderTankEntity()
@@ -235,7 +153,7 @@ void m1::InitTema2::RenderTankEntity()
        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
        modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
-       modelMatrix = glm::translate(modelMatrix, glm::vec3(3.4f, -0.39f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(3.8f, -0.39f, 0.35f));
        RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
    }
 
@@ -247,7 +165,7 @@ void m1::InitTema2::RenderTankEntity()
        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
        modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
-       modelMatrix = glm::translate(modelMatrix, glm::vec3(0.9f, -0.42f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(1.7f, -0.42f, 0.35f));
        RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
    }
 
@@ -259,7 +177,7 @@ void m1::InitTema2::RenderTankEntity()
        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
        modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
-       modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.6f, -0.42f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.8f, -0.42f, 0.35f));
        RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
    }
 
@@ -271,10 +189,24 @@ void m1::InitTema2::RenderTankEntity()
        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
        modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
-	   modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.7f, -0.42f, 0.35f));
+	   modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.4f, -0.42f, 0.35f));
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedTilt.y, glm::vec3(0, 1, 0));
        RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
    }
+}
+
+void m1::InitTema2::RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix)
+{
+    if (!mesh || !shader || !shader->program)
+        return;
+
+    // Render an object using the specified shader and the specified position
+    shader->Use();
+    glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetViewMatrix()));
+    glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+    glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    mesh->Render();
 }
 
 void InitTema2::Init()
@@ -290,6 +222,12 @@ void InitTema2::Init()
         shader->CreateAndLink();
         shaders[shader->GetName()] = shader;
     }
+
+    camera = new Camera();
+    camera->Set(glm::vec3(-5, 2.5f, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+    initialCameraPosition = glm::vec3(-5, 2.5f, 0);
+    projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
+    fov = 80.0f;
 }
 
 void InitTema2::FrameStart()
@@ -342,6 +280,7 @@ void InitTema2::DetectInput()
         {
             animationSkipper += 2;
             tankTranslate += moveSpeed * forwardDir;
+            camera->MoveForward(moveSpeed);
         }
 
         // If we press R, translate the tank forward faster
@@ -349,6 +288,7 @@ void InitTema2::DetectInput()
         {
             animationSkipper += 8;
             tankTranslate += moveSpeedFast * forwardDir;
+            camera->MoveForward(moveSpeedFast);
         }
 
         // If we press S, decrease the animation index
@@ -357,7 +297,20 @@ void InitTema2::DetectInput()
             tankTranslate += moveSpeedSlow * -forwardDir;
             animationSkipper++;
             animationIncreaser = true;
+            camera->MoveForward(-moveSpeedSlow);
         }
+
+        const float cameraDistance = camera->distanceToTarget;
+        float cameraDistanceBehind = glm::length(glm::vec3(-5, 2.5f, 0)); // The desired distance behind the tank
+        float cameraHeight = 2.5f; // The height offset from the tank
+
+
+        const float horizontalDistance = glm::length(glm::vec3(camera->position.x - tankTranslate.x, 0, camera->position.z - tankTranslate.z)); // Horizontal distance from camera to tank
+        const float verticalDistance = camera->position.y - tankTranslate.y; // Vertical distance from camera to tank
+        const float initialPitchAngle = atan2(verticalDistance, horizontalDistance); // Pitch angle of the camera relative to the tank
+
+        // Calculate the look-at point before rotation
+        glm::vec3 lookAtPoint = camera->position + camera->forward * camera->distanceToTarget;
 
         // On key A, rotate the tank to the left
         if (window->KeyHold(GLFW_KEY_A))
@@ -365,14 +318,15 @@ void InitTema2::DetectInput()
             tankRotate.y += moveSpeedSlow;
             wheelTilt.y = 0.3f;
             animationSkipper++;
+            camera->RotateThirdPerson_OY(moveSpeedSlow, tankTranslate);
         }
-
         // On key D, rotate the tank to the right
         if (window->KeyHold(GLFW_KEY_D))
         {
             tankRotate.y -= moveSpeedSlow;
             wheelTilt.y = -0.3f;
             animationSkipper++;
+            camera->RotateThirdPerson_OY(-moveSpeedSlow, tankTranslate);
         }
 
         UpdateAnimationTrackers(animationIncreaser);
@@ -388,7 +342,7 @@ glm::vec3 m1::InitTema2::ComputeRotationBasedOnMouse()
 
     glm::ivec2 resolution = window->GetResolution();
 
-    float normalizedX = (mouseX - resolution.x / 2) / (resolution.x / 2);
+    float normalizedX = (float)(mouseX - resolution.x / 2) / (resolution.x / 2);
 
     constexpr float maxRotationRadians = glm::half_pi<float>(); // π/2
     rotation.y = glm::clamp(normalizedX, -1.0f, 1.0f) * maxRotationRadians;
@@ -398,6 +352,15 @@ glm::vec3 m1::InitTema2::ComputeRotationBasedOnMouse()
     rotation.z = 0;
 
     return rotation;
+}
+
+void m1::InitTema2::PositionCameraThirdPerson(int deltaX, int deltaY)
+{
+    float sensivityOX = 0.001f;
+    float sensivityOY = 0.001f;
+
+    camera->RotateThirdPerson_OX(-sensivityOX * deltaY);
+    camera->RotateThirdPerson_OY(-sensivityOY * deltaX);
 }
 
 void InitTema2::Update(float deltaTimeSeconds)
@@ -410,7 +373,7 @@ void InitTema2::Update(float deltaTimeSeconds)
 
 void InitTema2::FrameEnd()
 {
-    DrawCoordinateSystem();
+    DrawCoordinateSystem(camera->GetViewMatrix(), projectionMatrix);
 }
 
 
@@ -422,38 +385,53 @@ void InitTema2::FrameEnd()
 
 void InitTema2::OnInputUpdate(float deltaTime, int mods)
 {
-    // Add key press event
+    if (window->KeyHold(GLFW_KEY_1))
+    {
+        fov += deltaTime * cameraSpeed;
+        if (fov > 150.0f)
+        {
+            fov = 150.0f;
+        }
+        projectionMatrix = glm::perspective(RADIANS(fov), window->props.aspectRatio, 0.01f, 100.f);
+        
+    }
+
+    if (window->KeyHold(GLFW_KEY_2))
+    {
+        fov -= deltaTime * cameraSpeed;
+        if (fov < 20.0f)
+        {
+            fov = 20.0f;
+        }
+        projectionMatrix = glm::perspective(RADIANS(fov), window->props.aspectRatio, 0.01f, 100.f);
+    }
 }
 
 
 void InitTema2::OnKeyPress(int key, int mods)
 {
-    // On "W" press increase the animation index
-   
 }
 
 
 void InitTema2::OnKeyRelease(int key, int mods)
 {
-    // Add key release event
 }
 
 
 void InitTema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
-    // Add mouse move event
+    projectionMatrix = glm::perspective(RADIANS(fov), window->props.aspectRatio, 0.01f, 100.f);
+    PositionCameraThirdPerson(deltaX, deltaY);
 }
 
 
 void InitTema2::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 {
-    // Add mouse button press event
 }
 
 
 void InitTema2::OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods)
 {
-    // Add mouse button release event
 }
 
 

@@ -33,6 +33,9 @@ namespace m1
         void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
+        void UpdateAnimationTrackers(bool& animationIncreaser);
+        void DetectInput();
+        glm::vec3 ComputeRotationBasedOnMouse();
         
 
         float elapsedTime;

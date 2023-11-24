@@ -1,4 +1,4 @@
-#include "lab_m1/tema2/Init.hpp"
+﻿#include "lab_m1/tema2/Init.hpp"
 
 #include <vector>
 #include <string>
@@ -163,18 +163,22 @@ void m1::InitTema2::RenderTankEntity()
     }
 
    {
+       glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
        glm::mat4 modelMatrix = glm::mat4(1);
        modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
        modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
        modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
+       modelMatrix = glm::rotate(modelMatrix, -mouseRotation.y, glm::vec3(0, 1, 0));
        RenderMesh(tankObjects["turet"], shaders["ShaderTank"], modelMatrix);
    }
 
    {
+        glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
         modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
         modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
+        modelMatrix = glm::rotate(modelMatrix, -mouseRotation.y, glm::vec3(0, 1, 0));
         RenderMesh(tankObjects["tun"], shaders["ShaderTank"], modelMatrix);
    }
    
@@ -299,25 +303,41 @@ void InitTema2::FrameStart()
     glViewport(0, 0, resolution.x, resolution.y);
 }
 
-
-void InitTema2::Update(float deltaTimeSeconds)
+void InitTema2::UpdateAnimationTrackers(bool &animationIncreaser)
 {
-    RenderTankEntity();
-
+    if (animationSkipper >= 24)
+    {
+        if (animationIncreaser == false)
+        {
+            animationIndex--;
+            if (animationIndex < 1)
+            {
+                animationIndex = 250;
+            }
+        }
+        else if (animationIncreaser == true)
+        {
+            animationIndex++;
+            if (animationIndex > 250)
+            {
+                animationIndex = 1;
+            }
+        }
+        animationSkipper = 0;
+    }
+}
+void InitTema2::DetectInput()
+{
     // If right click is not pressed
     if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
     {
-        glm::vec3 forwardDir = glm::vec3(cos(tankRotate.y), 0, -sin(tankRotate.y));
-        forwardDir = glm::normalize(forwardDir);
-
-        // Movement speed
+        glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(tankRotate.y), 0, -sin(tankRotate.y)));
         float moveSpeed = 0.007f;
         float moveSpeedFast = 0.030f;
         float moveSpeedSlow = 0.005f;
-
         bool animationIncreaser = false;
         wheelTilt.y = 0;
-        // If we press W, translate the tank forward
+
         if (window->KeyHold(GLFW_KEY_W))
         {
             animationSkipper += 2;
@@ -355,27 +375,35 @@ void InitTema2::Update(float deltaTimeSeconds)
             animationSkipper++;
         }
 
-        if (animationSkipper >= 24)
-        {
-            if (animationIncreaser == false)
-            {
-                animationIndex--;
-                if (animationIndex < 1)
-                {
-                    animationIndex = 250;
-                }
-            }
-            else if (animationIncreaser == true)
-            {
-                animationIndex++;
-                if (animationIndex > 250)
-                {
-                    animationIndex = 1;
-                }
-            }
-            animationSkipper = 0;
-        }
+        UpdateAnimationTrackers(animationIncreaser);
     }
+}
+
+glm::vec3 m1::InitTema2::ComputeRotationBasedOnMouse()
+{
+    glm::vec3 rotation = glm::vec3(0, 0, 0);
+
+    double mouseX = window->GetCursorPosition().x;
+    double mouseY = window->GetCursorPosition().y;
+
+    glm::ivec2 resolution = window->GetResolution();
+
+    float normalizedX = (mouseX - resolution.x / 2) / (resolution.x / 2);
+
+    constexpr float maxRotationRadians = glm::half_pi<float>(); // π/2
+    rotation.y = glm::clamp(normalizedX, -1.0f, 1.0f) * maxRotationRadians;
+
+    // Assuming we don't want to rotate around the X or Z axis based on mouse position
+    rotation.x = 0;
+    rotation.z = 0;
+
+    return rotation;
+}
+
+void InitTema2::Update(float deltaTimeSeconds)
+{
+    RenderTankEntity();
+    DetectInput();
 }
 
 

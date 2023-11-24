@@ -46,5 +46,6 @@ namespace m1
         int animationSkipper = 0;
         glm::vec3 bodyTankPosition = glm::vec3(0, 0, 0);
         glm::vec3 bodyTankCenter = glm::vec3(0, 0, 0);
+        glm::vec3 bodyMM = glm::vec3(0, 0, 0);
     };
 }   // namespace m1

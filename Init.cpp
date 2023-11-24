@@ -154,7 +154,6 @@ void m1::InitTema2::RenderTankEntity()
     glm::vec3 wheelAdjustedTilt = wheelTilt;
     int animationIndexReverse = 250 - animationIndex + 1;
 
-
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
@@ -308,26 +307,34 @@ void InitTema2::Update(float deltaTimeSeconds)
     // If right click is not pressed
     if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
     {
+        glm::vec3 forwardDir = glm::vec3(cos(tankRotate.y), 0, -sin(tankRotate.y));
+        forwardDir = glm::normalize(forwardDir);
+
+        // Movement speed
+        float moveSpeed = 0.007f;
+        float moveSpeedFast = 0.030f;
+        float moveSpeedSlow = 0.005f;
+
         bool animationIncreaser = false;
         wheelTilt.y = 0;
         // If we press W, translate the tank forward
         if (window->KeyHold(GLFW_KEY_W))
         {
             animationSkipper += 2;
-            tankTranslate.x += 0.007f;
+            tankTranslate += moveSpeed * forwardDir;
         }
 
         // If we press R, translate the tank forward faster
         if (window->KeyHold(GLFW_KEY_R))
         {
             animationSkipper += 8;
-            tankTranslate.x += 0.030f;
+            tankTranslate += moveSpeedFast * forwardDir;
         }
 
         // If we press S, decrease the animation index
         if (window->KeyHold(GLFW_KEY_S))
         {
-            tankTranslate.x -= 0.003f;
+            tankTranslate += moveSpeedSlow * -forwardDir;
             animationSkipper++;
             animationIncreaser = true;
         }
@@ -335,7 +342,7 @@ void InitTema2::Update(float deltaTimeSeconds)
         // On key A, rotate the tank to the left
         if (window->KeyHold(GLFW_KEY_A))
         {
-            tankRotate.y += 0.002f;
+            tankRotate.y += moveSpeedSlow;
             wheelTilt.y = 0.3f;
             animationSkipper++;
         }
@@ -343,7 +350,7 @@ void InitTema2::Update(float deltaTimeSeconds)
         // On key D, rotate the tank to the right
         if (window->KeyHold(GLFW_KEY_D))
         {
-            tankRotate.y -= 0.002f;
+            tankRotate.y -= moveSpeedSlow;
             wheelTilt.y = -0.3f;
             animationSkipper++;
         }

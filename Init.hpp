@@ -43,5 +43,7 @@ namespace m1
         glm::vec3 tankTranslate = glm::vec3(0, 0, 0);
         glm::vec3 tankRotate = glm::vec3(0, 0, 0);
         bool animationSkipper = false;
+        glm::vec3 bodyTankPosition = glm::vec3(0, 0, 0);
+        glm::vec3 bodyTankCenter = glm::vec3(0, 0, 0);
     };
 }   // namespace m1

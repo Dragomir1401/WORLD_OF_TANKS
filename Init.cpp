@@ -35,7 +35,7 @@ void InitTema2::CreateTankEntity()
 
     {
 		Mesh* mesh = new Mesh("tun");
-		mesh->LoadMesh(sourceObjDirTank, "turet.obj");
+		mesh->LoadMesh(sourceObjDirTank, "tunGun.obj");
 		tankObjects["tun"] = mesh;
 	}
 
@@ -157,27 +157,32 @@ void m1::InitTema2::RenderTankEntity()
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
-        modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, -0.1f, 0.0f));
+        //modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, -0.1f, 0.0f));
         modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
+        modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
+
+        // Store body tank position
+        bodyTankPosition = glm::vec3(modelMatrix[3][0], modelMatrix[3][1], modelMatrix[3][2]);
+        // Store the body tank center position
+        bodyTankCenter = glm::vec3(modelMatrix[3][0], modelMatrix[3][1], modelMatrix[3][2]);
         RenderMesh(tankObjects["body"], shaders["ShaderTank"], modelMatrix);
     }
 
    {
        glm::mat4 modelMatrix = glm::mat4(1);
        modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
-       modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
-       modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.05f, 1.75f, -1.75f));
+       //modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.05f, 1.75f, -1.75f));
        modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
+       modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
        RenderMesh(tankObjects["turet"], shaders["ShaderTank"], modelMatrix);
    }
 
    {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
-        modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(6.0f, 5.075f, -0.9f));
         modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
+        modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
+        //modelMatrix = glm::translate(modelMatrix, glm::vec3(6.0f, 5.075f, -0.9f));
         RenderMesh(tankObjects["tun"], shaders["ShaderTank"], modelMatrix);
    }
    

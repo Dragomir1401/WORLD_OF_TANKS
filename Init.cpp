@@ -202,14 +202,14 @@ void m1::InitTema2::RenderTankEntity()
    }
 
    {
-	   // Rend the wheel 8 out of 8 at animationIndex
-	   string name = "wheel" + to_string(animationIndex);
-	   glm::mat4 modelMatrix = glm::mat4(1);
-	   modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
+       // Rend the wheel 8 out of 8 at animationIndex
+       string name = "wheel" + to_string(animationIndex);
+       glm::mat4 modelMatrix = glm::mat4(1);
+       modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
        modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedRotate.y, glm::vec3(0, 1, 0));
-	   modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.4f, -0.42f, 0.35f));
+       modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.4f, -0.42f, 0.35f));
        modelMatrix = glm::rotate(modelMatrix, wheelAdjustedTilt.y, glm::vec3(0, 1, 0));
        RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
    }
@@ -235,42 +235,56 @@ void m1::InitTema2::ShootOnLeftClick()
     if (window->MouseHold(GLFW_MOUSE_BUTTON_LEFT) && currentTime - lastTimeShot > 2.0f)
     {
         glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
-        Bullet* bullet = new Bullet(tankCurrentPosition, 
+        Bullet* bullet = new Bullet(tankCurrentPosition,
             projectileObjects,
             1,
             tankRotate,
             tankWorldMatrix,
             mouseRotation,
-            turretRelativeRotate, 
-            turretWorldMatrix);
+            turretRelativeRotate,
+            turretWorldMatrix,
+            currentTime);
 
         bullets.push_back(bullet);
         lastTimeShot = currentTime;
-	}
+    }
 }
 
 void m1::InitTema2::MoveBulletsInLine()
 {
     // Move the bullets in a straight line
-    for (int i = 0; i < bullets.size(); i++)
+    for (auto &bullet : bullets)
     {
-        bullets[i]->animationIndex++;
-        if (bullets[i]->animationIndex > 60)
+        if (bullet->timerExpired == true)
         {
-			bullets[i]->animationIndex = 21;
+			bullets.erase(std::remove(bullets.begin(), bullets.end(), bullet), bullets.end());
+			continue;
 		}
 
+        bullet->animationIndex++;
+        if (bullet->animationIndex > 60)
+        {
+            bullet->animationIndex = 21;
+        }
+
         float bulletSpeed = 0.025f;
-        glm::vec3 direction = glm::vec3(cos(bullets[i]->turretRelativeRotationWhenBulletWasShot.y), 0, -sin(bullets[i]->turretRelativeRotationWhenBulletWasShot.y));
-        bullets[i]->position += direction * bulletSpeed;
+        glm::vec3 direction = glm::vec3(cos(bullet->turretRelativeRotationWhenBulletWasShot.y),
+            0,
+            -sin(bullet->turretRelativeRotationWhenBulletWasShot.y));
+        bullet->position += direction * bulletSpeed;
 
-		glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, bullets[i]->position);
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, bullet->position);
         modelMatrix = glm::rotate(modelMatrix, RADIANS(270), glm::vec3(0, 1, 0));
-        modelMatrix = glm::rotate(modelMatrix, bullets[i]->turretRelativeRotationWhenBulletWasShot.y, glm::vec3(0, 1, 0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(bullets[i]->bulletScale));
+        modelMatrix = glm::rotate(modelMatrix, bullet->turretRelativeRotationWhenBulletWasShot.y, glm::vec3(0, 1, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(bullet->bulletScale));
 
-		RenderMesh(bullets[i]->meshes["projectile" + to_string(bullets[i]->animationIndex)], shaders["ShaderTank"], modelMatrix);
+        RenderMesh(bullet->meshes["projectile" + to_string(bullet->animationIndex)], shaders["ShaderTank"], modelMatrix);
+
+        if (currentTime - bullet->shootedTime > 7.0f)
+        {
+			bullet->timerExpired = true;
+		}
 	}
 }
 

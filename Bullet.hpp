@@ -16,6 +16,7 @@ public:
 		glm::vec3 mouseRotationWhenBulletWasShot,
 		glm::vec3 turretRelativeRotationWhenBulletWasShot,
 		glm::mat4 turretWorldMatrixWhenBulletWasShot,
+		float shootedTime,
 		float bulletScale = 0.3f);
 	~Bullet();
 	glm::vec3 position;
@@ -29,4 +30,6 @@ public:
 	glm::vec3 mouseRotationWhenBulletWasShot = glm::vec3(0, 0, 0);
 	glm::vec3 turretRelativeRotationWhenBulletWasShot = glm::vec3(0, 0, 0);
 	glm::mat4 turretWorldMatrixWhenBulletWasShot;
+	bool timerExpired = false;
+	float shootedTime = 0;
 };

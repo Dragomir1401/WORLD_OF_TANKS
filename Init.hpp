@@ -60,6 +60,7 @@ namespace m1
         glm::vec3 lastTuretRotation = glm::vec3(0, 0, 0);
         glm::vec3 tankCurrentPosition = glm::vec3(0, 0, 0);
         glm::mat4 tankWorldMatrix;
+        glm::mat4 turretWorldMatrix;
         Camera* camera;
         float right;
         float left;

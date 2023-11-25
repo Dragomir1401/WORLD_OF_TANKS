@@ -8,6 +8,7 @@ Bullet::Bullet(glm::vec3 position,
 	glm::mat4 tankWorldMatrixWhenBulletWasShot,
 	glm::vec3 mouseRotationWhenBulletWasShot,
 	glm::vec3 turretRelativeRotationWhenBulletWasShot,
+	glm::mat4 turretWorldMatrixWhenBulletWasShot,
 	float bulletScale)
 {
 	this->position = position;
@@ -18,8 +19,9 @@ Bullet::Bullet(glm::vec3 position,
 	this->tankWorldMatrixWhenBulletWasShot = tankWorldMatrixWhenBulletWasShot;
 	this->mouseRotationWhenBulletWasShot = mouseRotationWhenBulletWasShot;
 	this->turretRelativeRotationWhenBulletWasShot = turretRelativeRotationWhenBulletWasShot;
+	this->turretWorldMatrixWhenBulletWasShot = turretWorldMatrixWhenBulletWasShot;
 
-	glm::vec4 bulletWorldPosition = tankWorldMatrixWhenBulletWasShot * glm::vec4(relativePositionToTankOrigin, 1.0f);
+	glm::vec4 bulletWorldPosition = turretWorldMatrixWhenBulletWasShot * glm::vec4(relativePositionToTankOrigin, 1.0f);
 	this->position = glm::vec3(bulletWorldPosition);
 }
 

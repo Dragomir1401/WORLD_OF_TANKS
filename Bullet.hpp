@@ -15,6 +15,7 @@ public:
 		glm::mat4 tankWorldMatrixWhenBulletWasShot,
 		glm::vec3 mouseRotationWhenBulletWasShot,
 		glm::vec3 turretRelativeRotationWhenBulletWasShot,
+		glm::mat4 turretWorldMatrixWhenBulletWasShot,
 		float bulletScale = 0.3f);
 	~Bullet();
 	glm::vec3 position;
@@ -25,6 +26,7 @@ public:
 	glm::vec3 relativePositionToTankOrigin = glm::vec3(7.75f, 3.2f, 0);
 	float tankScale = 0.35f;
 	glm::mat4 tankWorldMatrixWhenBulletWasShot;
-	glm::vec3 mouseRotationWhenBulletWasShot = glm::vec3(0, 0, 0);\
+	glm::vec3 mouseRotationWhenBulletWasShot = glm::vec3(0, 0, 0);
 	glm::vec3 turretRelativeRotationWhenBulletWasShot = glm::vec3(0, 0, 0);
+	glm::mat4 turretWorldMatrixWhenBulletWasShot;
 };

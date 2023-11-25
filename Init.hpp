@@ -4,6 +4,7 @@
 
 #include "components/simple_scene.h"
 #include "lab_camera.hpp"
+#include "Bullet.hpp"
 
 
 namespace m1
@@ -37,19 +38,28 @@ namespace m1
         glm::vec3 ComputeRotationBasedOnMouse();
         void PositionCameraThirdPerson(int deltaX, int deltaY);
         void RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix);
+        void ShootOnLeftClick();
+        void MoveBulletsInLine();
         
 
         float elapsedTime;
         std::unordered_map<std::string, Mesh*> tankObjects;
+        std::unordered_map<std::string, Mesh*> projectileObjects;
         std::unordered_map<std::string, Texture2D*> textures;
+        std::vector<Bullet*> bullets;
         int animationIndex = 250;
         glm::vec3 lastWheelPosition;
         glm::vec3 tankTranslate = glm::vec3(0, 0, 0);
         glm::vec3 tankRotate = glm::vec3(0, 0, 0);
+        glm::vec3 turretRotate = glm::vec3(0, 0, 0);
+        glm::vec3 turretRelativeRotate = glm::vec3(0, 0, 0);
         glm::vec3 wheelTilt = glm::vec3(0, 0, 0);
         int animationSkipper = 0;
         glm::mat4 projectionMatrix;
         glm::vec3 initialCameraPosition = glm::vec3(0, 0, 0);
+        glm::vec3 lastTuretRotation = glm::vec3(0, 0, 0);
+        glm::vec3 tankCurrentPosition = glm::vec3(0, 0, 0);
+        glm::mat4 tankWorldMatrix;
         Camera* camera;
         float right;
         float left;
@@ -57,5 +67,7 @@ namespace m1
         float top;
         float fov;
         float cameraSpeed = 200.0f;
+        float currentTime = 0;
+        float lastTimeShot = 0;
     };
 }   // namespace m1

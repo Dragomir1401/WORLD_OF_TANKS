@@ -26,8 +26,9 @@ InitTema2::~InitTema2()
 
 void InitTema2::CreateTankEntity()
 {
-    const string sourceObjDir = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects");
     const string sourceObjDirTank = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "tank", "terog");
+    const string sourceObjDirProjectiles = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "projectile");
+
     {
         Mesh* mesh = new Mesh("body");
         mesh->LoadMesh(sourceObjDirTank, "body.obj");
@@ -46,7 +47,7 @@ void InitTema2::CreateTankEntity()
         tankObjects["turet"] = mesh;
     }
 
-    // for to 250 load wheel
+    // for to 250 load wheels animation
     for (int i = 1; i <= 250; i++)
     {
 		string name = "wheel" + to_string(i);
@@ -55,6 +56,17 @@ void InitTema2::CreateTankEntity()
 		mesh->LoadMesh(sourceObjDirTank, nameObj);
 		tankObjects[name] = mesh;
 	}
+
+    // for to 250 load projectile animation
+    for (int i = 1; i <= 60; i++)
+    {
+		string name = "projectile" + to_string(i);
+		string nameObj = "projectile" + to_string(i) + ".obj";
+		Mesh* mesh = new Mesh(name);
+		mesh->LoadMesh(sourceObjDirProjectiles, nameObj);
+		projectileObjects[name] = mesh;
+	}
+
 }
 
 void InitTema2::ParseTextures()
@@ -77,6 +89,10 @@ void m1::InitTema2::RenderTankEntity()
         modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
         modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
         modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
+        
+        tankCurrentPosition = modelMatrix[3];
+        tankWorldMatrix = modelMatrix;
+
         RenderMesh(tankObjects["body"], shaders["ShaderTank"], modelMatrix);
     }
 
@@ -87,6 +103,9 @@ void m1::InitTema2::RenderTankEntity()
        modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
        modelMatrix = glm::rotate(modelMatrix, tankAdjustedRotate.y, glm::vec3(0, 1, 0));
        modelMatrix = glm::rotate(modelMatrix, -mouseRotation.y, glm::vec3(0, 1, 0));
+       turretRotate.y = -mouseRotation.y;
+       turretRelativeRotate = tankAdjustedRotate + glm::vec3(0, turretRotate.y, 0);
+
        RenderMesh(tankObjects["turet"], shaders["ShaderTank"], modelMatrix);
    }
 
@@ -209,6 +228,44 @@ void m1::InitTema2::RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& mode
     mesh->Render();
 }
 
+void m1::InitTema2::ShootOnLeftClick()
+{
+    // Render the projectile at the tip of the tun when clicking left mouse button
+    if (window->MouseHold(GLFW_MOUSE_BUTTON_LEFT) && currentTime - lastTimeShot > 2.0f)
+    {
+        glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
+        Bullet* bullet = new Bullet(tankCurrentPosition, projectileObjects, 1, tankRotate, tankWorldMatrix, mouseRotation, turretRelativeRotate);
+        bullets.push_back(bullet);
+        lastTimeShot = currentTime;
+	}
+}
+
+void m1::InitTema2::MoveBulletsInLine()
+{
+    // Move the bullets in a straight line
+    for (int i = 0; i < bullets.size(); i++)
+    {
+        bullets[i]->animationIndex++;
+        if (bullets[i]->animationIndex > 60)
+        {
+			bullets[i]->animationIndex = 21;
+		}
+
+        float bulletSpeed = 0.025f;
+        glm::vec3 direction = glm::vec3(cos(bullets[i]->turretRelativeRotationWhenBulletWasShot.y), 0, -sin(bullets[i]->turretRelativeRotationWhenBulletWasShot.y));
+        bullets[i]->position += direction * bulletSpeed;
+
+		glm::mat4 modelMatrix = glm::mat4(1);
+
+        modelMatrix = glm::translate(modelMatrix, bullets[i]->position);
+        modelMatrix = glm::rotate(modelMatrix, RADIANS(270), glm::vec3(0, 1, 0));
+        modelMatrix = glm::rotate(modelMatrix, bullets[i]->tankRotation.y, glm::vec3(0, 1, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(bullets[i]->bulletScale));
+
+		RenderMesh(bullets[i]->meshes["projectile" + to_string(bullets[i]->animationIndex)], shaders["ShaderTank"], modelMatrix);
+	}
+}
+
 void InitTema2::Init()
 {
     CreateTankEntity();
@@ -226,7 +283,7 @@ void InitTema2::Init()
     camera = new Camera();
     camera->Set(glm::vec3(-5, 2.5f, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
     initialCameraPosition = glm::vec3(-5, 2.5f, 0);
-    projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
+    projectionMatrix = glm::perspective(RADIANS(90), window->props.aspectRatio, 0.01f, 200.0f);
     fov = 80.0f;
 }
 
@@ -267,7 +324,6 @@ void InitTema2::UpdateAnimationTrackers(bool &animationIncreaser)
 void InitTema2::DetectInput()
 {
     // If right click is not pressed
-    if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
     {
         glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(tankRotate.y), 0, -sin(tankRotate.y)));
         float moveSpeed = 0.007f;
@@ -300,15 +356,6 @@ void InitTema2::DetectInput()
             camera->MoveForward(-moveSpeedSlow);
         }
 
-        const float cameraDistance = camera->distanceToTarget;
-        float cameraDistanceBehind = glm::length(glm::vec3(-5, 2.5f, 0)); // The desired distance behind the tank
-        float cameraHeight = 2.5f; // The height offset from the tank
-
-
-        const float horizontalDistance = glm::length(glm::vec3(camera->position.x - tankTranslate.x, 0, camera->position.z - tankTranslate.z)); // Horizontal distance from camera to tank
-        const float verticalDistance = camera->position.y - tankTranslate.y; // Vertical distance from camera to tank
-        const float initialPitchAngle = atan2(verticalDistance, horizontalDistance); // Pitch angle of the camera relative to the tank
-
         // Calculate the look-at point before rotation
         glm::vec3 lookAtPoint = camera->position + camera->forward * camera->distanceToTarget;
 
@@ -337,6 +384,11 @@ glm::vec3 m1::InitTema2::ComputeRotationBasedOnMouse()
 {
     glm::vec3 rotation = glm::vec3(0, 0, 0);
 
+    if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
+    {
+		return lastTuretRotation;
+	}
+
     double mouseX = window->GetCursorPosition().x;
     double mouseY = window->GetCursorPosition().y;
 
@@ -350,6 +402,8 @@ glm::vec3 m1::InitTema2::ComputeRotationBasedOnMouse()
     // Assuming we don't want to rotate around the X or Z axis based on mouse position
     rotation.x = 0;
     rotation.z = 0;
+
+    lastTuretRotation = rotation;
 
     return rotation;
 }
@@ -367,6 +421,10 @@ void InitTema2::Update(float deltaTimeSeconds)
 {
     RenderTankEntity();
     DetectInput();
+    ShootOnLeftClick();
+    MoveBulletsInLine();
+
+    currentTime += deltaTimeSeconds;
 }
 
 

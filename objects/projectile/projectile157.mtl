@@ -1,0 +1,12 @@
+# Blender 4.0.0 MTL File: 'None'
+# www.blender.org
+
+newmtl Material
+Ns 793.718994
+Ka 0.436364 0.436364 0.436364
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 2.150000
+d 0.968182
+illum 6
+map_Kd DefaultMaterial_Diffuse.png

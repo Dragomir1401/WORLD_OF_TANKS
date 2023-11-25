@@ -1,0 +1,32 @@
+# Blender 4.0.0 MTL File: 'None'
+# www.blender.org
+
+newmtl Material
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 2.150000
+d 0.968182
+illum 6
+Pr 0.109091
+Pm 0.850000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+aniso 0.000000
+anisor 0.000000
+map_Kd explosion-diffuse.jpeg
+
+newmtl Material.002
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.968182
+illum 9
+Pr 0.000000
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+aniso 0.000000
+anisor 0.000000
+map_Kd explosion-diffuse.jpeg

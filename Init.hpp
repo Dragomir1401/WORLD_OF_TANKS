@@ -40,6 +40,7 @@ namespace m1
         void RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix);
         void ShootOnLeftClick();
         void MoveBulletsInLine();
+        void RenderGround();
         
 
         float elapsedTime;

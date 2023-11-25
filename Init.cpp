@@ -28,6 +28,7 @@ void InitTema2::CreateTankEntity()
 {
     const string sourceObjDirTank = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "tank", "terog");
     const string sourceObjDirProjectiles = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "projectile");
+    const string sourceObjDirGround = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "ground");
 
     {
         Mesh* mesh = new Mesh("body");
@@ -65,6 +66,12 @@ void InitTema2::CreateTankEntity()
 		Mesh* mesh = new Mesh(name);
 		mesh->LoadMesh(sourceObjDirProjectiles, nameObj);
 		projectileObjects[name] = mesh;
+	}
+
+    {
+		Mesh* mesh = new Mesh("ground");
+		mesh->LoadMesh(sourceObjDirGround, "ground.obj");
+		tankObjects["ground"] = mesh;
 	}
 
 }
@@ -288,6 +295,46 @@ void m1::InitTema2::MoveBulletsInLine()
 	}
 }
 
+void m1::InitTema2::RenderGround()
+{
+   
+    glm::mat4 modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0.02f, 0));
+    RenderMesh(tankObjects["ground"], shaders["ShaderTank"], modelMatrix);
+
+    modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(20.0f, 0.02f, 0));
+    RenderMesh(tankObjects["ground"], shaders["ShaderTank"], modelMatrix);
+
+    modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(-20.0f, 0.02f, 0));
+    RenderMesh(tankObjects["ground"], shaders["ShaderTank"], modelMatrix);
+
+    modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0.02f, -20.0f));
+    RenderMesh(tankObjects["ground"], shaders["ShaderTank"], modelMatrix);
+
+    modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0.02f, 20.0f));
+    RenderMesh(tankObjects["ground"], shaders["ShaderTank"], modelMatrix);
+
+    modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(20.0f, 0.02f, 20.0f));
+    RenderMesh(tankObjects["ground"], shaders["ShaderTank"], modelMatrix);
+
+    modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(-20.0f, 0.02f, -20.0f));
+    RenderMesh(tankObjects["ground"], shaders["ShaderTank"], modelMatrix);
+
+    modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(-20.0f, 0.02f, 20.0f));
+    RenderMesh(tankObjects["ground"], shaders["ShaderTank"], modelMatrix);
+
+    modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(20.0f, 0.02f, -20.0f));
+    RenderMesh(tankObjects["ground"], shaders["ShaderTank"], modelMatrix);
+}
+
 void InitTema2::Init()
 {
     CreateTankEntity();
@@ -445,6 +492,7 @@ void InitTema2::Update(float deltaTimeSeconds)
     DetectInput();
     ShootOnLeftClick();
     MoveBulletsInLine();
+    RenderGround();
 
     currentTime += deltaTimeSeconds;
 }

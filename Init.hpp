@@ -65,6 +65,10 @@ namespace m1
         glm::vec3 tankCurrentPosition = glm::vec3(0, 0, 0);
         glm::mat4 tankWorldMatrix = glm::mat4(1);
         glm::mat4 turretWorldMatrix = glm::mat4(1);
+        float right;
+        float left;
+        float bottom;
+        float top;
         float cameraSpeed = 200.0f;
         float currentTime = 0;
         float lastTimeShot = 0;

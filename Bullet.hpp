@@ -39,6 +39,6 @@ namespace m1
 		glm::mat4 turretWorldMatrixWhenBulletWasShot;
 		bool timerExpired = false;
 		float shootedTime = 0;
-		float bulletSpeed = 0.25f;
+		float bulletSpeed = 0.045f;
 	};
 } // namespace m1

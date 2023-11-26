@@ -365,20 +365,17 @@ void InitTema2::DetectInput()
     // If right click is not pressed
     {
         glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(tankRotate.y), 0, -sin(tankRotate.y)));
-        float moveSpeed = 0.09f;
-        float moveSpeedFast = 0.20f;
-        float moveSpeedSlow = 0.07f;
-        float moveSpeedVSlow = 0.04f;
+        float moveSpeed = 0.007f;
+        float moveSpeedFast = 0.030f;
+        float moveSpeedSlow = 0.005f;
         bool animationIncreaser = false;
         wheelTilt.y = 0;
-
         if (window->KeyHold(GLFW_KEY_W))
         {
             animationSkipper += 2;
             tankTranslate += moveSpeed * forwardDir;
             camera->MoveForward(moveSpeed);
         }
-
         // If we press R, translate the tank forward faster
         if (window->KeyHold(GLFW_KEY_R))
         {
@@ -386,7 +383,6 @@ void InitTema2::DetectInput()
             tankTranslate += moveSpeedFast * forwardDir;
             camera->MoveForward(moveSpeedFast);
         }
-
         // If we press S, decrease the animation index
         if (window->KeyHold(GLFW_KEY_S))
         {
@@ -395,24 +391,24 @@ void InitTema2::DetectInput()
             animationIncreaser = true;
             camera->MoveForward(-moveSpeedSlow);
         }
-
+        // Calculate the look-at point before rotation
+        glm::vec3 lookAtPoint = camera->position + camera->forward * camera->distanceToTarget;
         // On key A, rotate the tank to the left
         if (window->KeyHold(GLFW_KEY_A))
         {
-            tankRotate.y += moveSpeedVSlow;
+            tankRotate.y += moveSpeedSlow;
             wheelTilt.y = 0.3f;
             animationSkipper++;
-            camera->RotateThirdPerson_OY(moveSpeedVSlow, tankTranslate);
+            camera->RotateThirdPerson_OY(moveSpeedSlow, tankTranslate);
         }
         // On key D, rotate the tank to the right
         if (window->KeyHold(GLFW_KEY_D))
         {
-            tankRotate.y -= moveSpeedVSlow;
+            tankRotate.y -= moveSpeedSlow;
             wheelTilt.y = -0.3f;
             animationSkipper++;
-            camera->RotateThirdPerson_OY(-moveSpeedVSlow, tankTranslate);
+            camera->RotateThirdPerson_OY(-moveSpeedSlow, tankTranslate);
         }
-
         UpdateAnimationTrackers(animationIncreaser);
     }
 }
@@ -436,7 +432,6 @@ glm::vec3 m1::InitTema2::ComputeRotationBasedOnMouse()
     constexpr float maxRotationRadians = glm::half_pi<float>(); // π/2
     rotation.y = glm::clamp(normalizedX, -1.0f, 1.0f) * maxRotationRadians;
 
-    // Assuming we don't want to rotate around the X or Z axis based on mouse position
     rotation.x = 0;
     rotation.z = 0;
 

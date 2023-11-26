@@ -5,10 +5,21 @@
 #include "components/simple_scene.h"
 #include "lab_camera.hpp"
 #include "Bullet.hpp"
-#include "ShadersAndRenders.hpp"
+#include "Tank.hpp"
+#include "TurretOrientation.hpp"
+#include "Ground.hpp"
 
 namespace m1 {
     class Bullet; // Forward declaration
+}
+namespace m1 {
+    class Tank; // Forward declaration
+}
+namespace m1 {
+    class TurretOrientation; // Forward declaration
+}
+namespace m1 {
+	class Ground; // Forward declaration
 }
 
 namespace m1
@@ -26,6 +37,8 @@ namespace m1
 
      private:
         void CreateTankEntity();
+        void CreateProjectileEntity();
+        void CreateGroundEntity();
         void RenderTankEntity();
         void FrameStart() override;
         void Update(float deltaTimeSeconds) override;
@@ -48,27 +61,25 @@ namespace m1
         void RenderGround();
         
         float elapsedTime = 0;
+        m1::Tank* tank;
+        m1::Ground* ground;
         std::vector<m1::Bullet*> bullets;
         std::unordered_map<std::string, Mesh*> tankObjects;
         std::unordered_map<std::string, Mesh*> projectileObjects;
+        std::unordered_map<std::string, Mesh*> groundObjects;
         std::unordered_map<std::string, Texture2D*> textures;
         int animationIndex = 250;
         glm::vec3 lastWheelPosition = glm::vec3(0, 0, 0);
         glm::vec3 tankTranslate = glm::vec3(0, 0, 0);
         glm::vec3 tankRotate = glm::vec3(0, 0, 0);
         glm::vec3 turretRotate = glm::vec3(0, 0, 0);
-        glm::vec3 turretRelativeRotate = glm::vec3(0, 0, 0);
         glm::vec3 wheelTilt = glm::vec3(0, 0, 0);
         int animationSkipper = 0;
         glm::vec3 initialCameraPosition = glm::vec3(0, 0, 0);
         glm::vec3 lastTuretRotation = glm::vec3(0, 0, 0);
         glm::vec3 tankCurrentPosition = glm::vec3(0, 0, 0);
         glm::mat4 tankWorldMatrix = glm::mat4(1);
-        glm::mat4 turretWorldMatrix = glm::mat4(1);
-        float right;
-        float left;
-        float bottom;
-        float top;
+        m1::TurretOrientation turretOrientation;
         float cameraSpeed = 200.0f;
         float currentTime = 0;
         float lastTimeShot = 0;

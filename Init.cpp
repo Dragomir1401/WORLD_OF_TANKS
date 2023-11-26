@@ -85,16 +85,41 @@ void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
     if (!isEnemy)
     {
         tank = new Tank(tankObjects, glm::vec3(0, 0, 0));
+
+        tankMovement = new TankMovement(
+			glm::vec3(0, 0, 0),
+			glm::vec3(0, 0, 0),
+			glm::vec3(0, 0, 0),
+			0,
+			250,
+			false,
+			m1::TankMovement::TankState::Idle);
     }
     else
     {
         for (int i = 0; i < NUM_ENEMY_TANKS; i++)
         {
 			glm::vec3 initialPosition = glm::vec3(0, 0, 0);
-            initialPosition.x = rand() % 15;
-			initialPosition.z = rand() % 15;
+            initialPosition.x = (float)(rand() % 15);
+			initialPosition.z = (float)(rand() % 15);
 			Tank* enemyTank = new Tank(enemyTankObjects, initialPosition);
 			enemyTanks.push_back(enemyTank);
+
+            TankMovement* enemyTankMovement = new TankMovement(
+                                                initialPosition,
+                                                glm::vec3(0, 0, 0),
+                                                glm::vec3(0, 0, 0),
+                                                0,
+                                                250,
+                                                false,
+                                                m1::TankMovement::TankState::Idle);
+            enemyTankMovements.push_back(enemyTankMovement);
+
+            TankPosition enemyTankPosition;
+            enemyTankPosition.tankWorldMatrix = glm::mat4(1);
+            enemyTankPosition.tankCurrentPosition = initialPosition;
+            enemyTankPosition.turretOrientation = TurretOrientation();
+            enemyTankPositions.push_back(enemyTankPosition);
 		}
 	}
 }
@@ -133,21 +158,24 @@ void InitTema2::CreateGroundEntity()
 
 void m1::InitTema2::RenderTankEntity()
 {
-    tankWorldMatrix = tank->RenderBody(shaders, tankTranslate, tankRotate);
-    tankCurrentPosition = tankWorldMatrix[3];
-    turretOrientation = tank->RenderTurret(shaders, tankTranslate, tankRotate, ComputeRotationBasedOnMouse());
-    tank->RenderTun(shaders, tankTranslate, tankRotate, ComputeRotationBasedOnMouse());
-    tank->RenderWheels(shaders, tankTranslate, tankRotate, wheelTilt, animationIndex);
+    tankPosition.tankWorldMatrix = tank->RenderBody(shaders, tankMovement->tankTranslate, tankMovement->tankRotate);
+    tankPosition.tankCurrentPosition = tankPosition.tankWorldMatrix[3];
+    tankPosition.turretOrientation = tank->RenderTurret(shaders, tankMovement->tankTranslate, tankMovement->tankRotate, ComputeRotationBasedOnMouse());
+    tank->RenderTun(shaders, tankMovement->tankTranslate, tankMovement->tankRotate, ComputeRotationBasedOnMouse());
+    tank->RenderWheels(shaders, tankMovement->tankTranslate, tankMovement->tankRotate, tankMovement->wheelTilt, tankMovement->animationIndex);
 }
 
 void m1::InitTema2::RenderEnemyTankEntity()
 {
-    for (auto& enemyTank : enemyTanks)
+    for (int i = 0; i < NUM_ENEMY_TANKS; i++)
     {
-		enemyTank->RenderBody(shaders, enemyTank->GetInitialPosition(), tankRotate);
-		enemyTank->RenderTurret(shaders, enemyTank->GetInitialPosition(), tankRotate, ComputeRotationBasedOnMouse());
-		enemyTank->RenderTun(shaders, enemyTank->GetInitialPosition(), tankRotate, ComputeRotationBasedOnMouse());
-		enemyTank->RenderWheels(shaders, enemyTank->GetInitialPosition(), tankRotate, wheelTilt, animationIndex);
+        enemyTankPositions[i].tankWorldMatrix = enemyTanks[i]->RenderBody(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate);
+        enemyTankPositions[i].tankCurrentPosition = enemyTankPositions[i].tankWorldMatrix[3];
+        enemyTankPositions[i].turretOrientation = enemyTanks[i]->RenderTurret(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, ComputeRotationBasedOnMouse());
+        enemyTanks[i]->RenderTun(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, ComputeRotationBasedOnMouse());
+        enemyTanks[i]->RenderWheels(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, enemyTankMovements[i]->wheelTilt, enemyTankMovements[i]->animationIndex);
+
+        //cout << "Enemy tank position: " << enemyTankPositions[i].tankCurrentPosition.x << " " << enemyTankPositions[i].tankCurrentPosition.y << " " << enemyTankPositions[i].tankCurrentPosition.z << endl;
 	}
 }
 
@@ -172,14 +200,14 @@ void m1::InitTema2::ShootOnLeftClick()
     {
         glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
         Bullet* bullet = new Bullet(
-            tankCurrentPosition,
+            tankPosition.tankCurrentPosition,
             projectileObjects,
             1,
-            tankRotate,
-            tankWorldMatrix,
+            tankMovement->tankRotate,
+            tankPosition.tankWorldMatrix,
             mouseRotation,
-            turretOrientation.turretRelativeRotationWhenBulletWasShot,
-            turretOrientation.turretWorldMatrixWhenBulletWasShot,
+            tankPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
+            tankPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
             currentTime);
 
         bullets.push_back(bullet);
@@ -238,78 +266,105 @@ void InitTema2::FrameStart()
     glViewport(0, 0, resolution.x, resolution.y);
 }
 
-void InitTema2::UpdateAnimationTrackers(bool &animationIncreaser)
+void InitTema2::UpdateAnimationTrackers(bool &animationIncreaser, TankMovement* tankMovement)
 {
-    if (animationSkipper >= 16)
+    if (tankMovement->animationSkipper >= 16)
     {
-        if (animationIncreaser == false)
+        if (tankMovement->animationIncreaser == false)
         {
-            animationIndex--;
-            if (animationIndex < 1)
+            tankMovement->animationIndex--;
+            if (tankMovement->animationIndex < 1)
             {
-                animationIndex = 250;
+                tankMovement->animationIndex = 250;
             }
         }
         else if (animationIncreaser == true)
         {
-            animationIndex++;
-            if (animationIndex > 250)
+            tankMovement->animationIndex++;
+            if (tankMovement->animationIndex > 250)
             {
-                animationIndex = 1;
+                tankMovement->animationIndex = 1;
             }
         }
-        animationSkipper = 0;
+        tankMovement->animationSkipper = 0;
     }
 }
 
 void InitTema2::DetectInput()
 {
-    glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(tankRotate.y), 0, -sin(tankRotate.y)));
+    glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(tankMovement->tankRotate.y), 0, -sin(tankMovement->tankRotate.y)));
     float moveSpeed = 0.007f;
     float moveSpeedFast = 0.030f;
     float moveSpeedSlow = 0.005f;
-    bool animationIncreaser = false;
-    wheelTilt.y = 0;
+    tankMovement->wheelTilt.y = 0;
 
     if (window->KeyHold(GLFW_KEY_W))
     {
-        animationSkipper += 2;
-        tankTranslate += moveSpeed * forwardDir;
+        tankMovement->animationSkipper += 2;
+        tankMovement->tankTranslate += moveSpeed * forwardDir;
         camera->MoveForward(moveSpeed);
     }
 
     if (window->KeyHold(GLFW_KEY_R))
     {
-        animationSkipper += 8;
-        tankTranslate += moveSpeedFast * forwardDir;
+        tankMovement->animationSkipper += 8;
+        tankMovement->tankTranslate += moveSpeedFast * forwardDir;
         camera->MoveForward(moveSpeedFast);
     }
 
     if (window->KeyHold(GLFW_KEY_S))
     {
-        tankTranslate += moveSpeedSlow * -forwardDir;
-        animationSkipper++;
-        animationIncreaser = true;
+        tankMovement->tankTranslate += moveSpeedSlow * -forwardDir;
+        tankMovement->animationSkipper++;
+        tankMovement->animationIncreaser = true;
         camera->MoveForward(-moveSpeedSlow);
     }
 
     if (window->KeyHold(GLFW_KEY_A))
     {
-        tankRotate.y += moveSpeedSlow;
-        wheelTilt.y = 0.3f;
-        animationSkipper++;
-        camera->RotateThirdPerson_OY(moveSpeedSlow, tankTranslate);
+        tankMovement->tankRotate.y += moveSpeedSlow;
+        tankMovement->wheelTilt.y = 0.3f;
+        tankMovement->animationSkipper++;
+        camera->RotateThirdPerson_OY(moveSpeedSlow, tankMovement->tankTranslate);
     }
 
     if (window->KeyHold(GLFW_KEY_D))
     {
-        tankRotate.y -= moveSpeedSlow;
-        wheelTilt.y = -0.3f;
-        animationSkipper++;
-        camera->RotateThirdPerson_OY(-moveSpeedSlow, tankTranslate);
+        tankMovement->tankRotate.y -= moveSpeedSlow;
+        tankMovement->wheelTilt.y = -0.3f;
+        tankMovement->animationSkipper++;
+        camera->RotateThirdPerson_OY(-moveSpeedSlow, tankMovement->tankTranslate);
     }
-    UpdateAnimationTrackers(animationIncreaser);
+    UpdateAnimationTrackers(tankMovement->animationIncreaser, tankMovement);
 }
+
+void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {
+    glm::vec3 myTankPosition = tankPosition.tankCurrentPosition;
+    float moveSpeed = 0.007f;
+
+    for (int i = 0; i < NUM_ENEMY_TANKS; i++)
+    {
+        enemyTankMovements[i]->UpdateMovementState(enemyTankPositions[i].tankCurrentPosition, myTankPosition);
+
+        switch (enemyTankMovements[i]->tankState)
+        {
+        case m1::TankMovement::TankState::Chase:
+            enemyTankMovements[i]->MoveTowards(myTankPosition, moveSpeed, deltaTime, enemyTankPositions[i].tankCurrentPosition);
+            break;
+        case m1::TankMovement::TankState::Flee:
+            enemyTankMovements[i]->MoveAway(myTankPosition, moveSpeed, deltaTime, enemyTankPositions[i].tankCurrentPosition);
+            break;
+        case m1::TankMovement::TankState::Idle:
+            // Perform idle behavior like random rotations
+            enemyTankMovements[i]->RotateRandomly(deltaTime);
+            break;
+        }
+
+        // Update animation trackers for the movement
+        UpdateAnimationTrackers(enemyTankMovements[i]->animationIncreaser, enemyTankMovements[i]);
+    }
+}
+
 
 glm::vec3 m1::InitTema2::ComputeRotationBasedOnMouse()
 {
@@ -351,6 +406,7 @@ void InitTema2::Update(float deltaTimeSeconds)
 {
     RenderTankEntity();
     RenderEnemyTankEntity();
+    RandomizeEnemyTankMovement(deltaTimeSeconds);
     DetectInput();
     ShootOnLeftClick();
     MoveBulletsInLine();

@@ -1,13 +1,15 @@
 #pragma once
 
 #include <vector>
-
+#include <random>
 #include "components/simple_scene.h"
 #include "lab_camera.hpp"
 #include "Bullet.hpp"
 #include "Tank.hpp"
 #include "TurretOrientation.hpp"
 #include "Ground.hpp"
+#include "TankMovement.hpp"
+#define NUM_ENEMY_TANKS 3
 
 namespace m1 {
     class Bullet; // Forward declaration
@@ -19,9 +21,20 @@ namespace m1 {
     class TurretOrientation; // Forward declaration
 }
 namespace m1 {
-	class Ground; // Forward declaration
+    class Ground; // Forward declaration
 }
-#define NUM_ENEMY_TANKS 3
+namespace m1 {
+	class TankMovement; // Forward declaration
+}
+
+
+struct TankPosition
+{
+    glm::mat4 tankWorldMatrix = glm::mat4(1);
+    glm::vec3 tankCurrentPosition = glm::vec3(0, 0, 0);
+    m1::TurretOrientation turretOrientation;
+};
+
 
 namespace m1
 {
@@ -55,8 +68,9 @@ namespace m1
         void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
-        void UpdateAnimationTrackers(bool& animationIncreaser);
+        void UpdateAnimationTrackers(bool& animationIncreaser, m1::TankMovement* tankMovement);
         void DetectInput();
+        void RandomizeEnemyTankMovement(float deltaTime);
         glm::vec3 ComputeRotationBasedOnMouse();
         void PositionCameraThirdPerson(int deltaX, int deltaY);
         void ShootOnLeftClick();
@@ -65,23 +79,19 @@ namespace m1
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;
+        m1::TankMovement* tankMovement;
+        TankPosition tankPosition;
         m1::Ground* ground = nullptr;
         std::vector<m1::Tank*> enemyTanks;
+        std::vector<m1::TankMovement*> enemyTankMovements;
+        std::vector<TankPosition> enemyTankPositions;
         std::vector<m1::Bullet*> bullets;
         std::unordered_map<std::string, Mesh*> tankObjects;
         std::unordered_map<std::string, Mesh*> enemyTankObjects;
         std::unordered_map<std::string, Mesh*> projectileObjects;
         std::unordered_map<std::string, Mesh*> groundObjects;
-        int animationIndex = 250;
-        int animationSkipper = 0;
-        glm::vec3 tankTranslate = glm::vec3(0, 0, 0);
-        glm::vec3 tankRotate = glm::vec3(0, 0, 0);
-        glm::vec3 wheelTilt = glm::vec3(0, 0, 0);
         glm::vec3 initialCameraPosition = glm::vec3(0, 0, 0);
         glm::vec3 lastTuretRotation = glm::vec3(0, 0, 0);
-        glm::vec3 tankCurrentPosition = glm::vec3(0, 0, 0);
-        glm::mat4 tankWorldMatrix = glm::mat4(1);
-        m1::TurretOrientation turretOrientation;
         float cameraSpeed = 200.0f;
         float currentTime = 0;
         float lastTimeShot = 0;

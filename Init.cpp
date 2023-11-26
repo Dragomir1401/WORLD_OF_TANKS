@@ -8,11 +8,8 @@
 using namespace std;
 using namespace m1;
 
-
-/*
- *  To find out more about `FrameStart`, `Update`, `FrameEnd`
- *  and the order in which they are called, see `world.cpp`.
- */
+glm::mat4 m1::InitTema2::projectionMatrix;
+m1::Camera* m1::InitTema2::camera;
 
 
 InitTema2::InitTema2()
@@ -76,9 +73,6 @@ void InitTema2::CreateTankEntity()
 
 }
 
-void InitTema2::ParseTextures()
-{
-}
 
 void m1::InitTema2::RenderTankEntity()
 {
@@ -242,7 +236,8 @@ void m1::InitTema2::ShootOnLeftClick()
     if (window->MouseHold(GLFW_MOUSE_BUTTON_LEFT) && currentTime - lastTimeShot > 2.0f)
     {
         glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
-        Bullet* bullet = new Bullet(tankCurrentPosition,
+        Bullet* bullet = new Bullet(
+            tankCurrentPosition,
             projectileObjects,
             1,
             tankRotate,
@@ -259,38 +254,12 @@ void m1::InitTema2::ShootOnLeftClick()
 
 void m1::InitTema2::MoveBulletsInLine()
 {
-    // Move the bullets in a straight line
     for (auto &bullet : bullets)
     {
-        if (bullet->timerExpired == true)
-        {
-			bullets.erase(std::remove(bullets.begin(), bullets.end(), bullet), bullets.end());
-			continue;
-		}
-
-        bullet->animationIndex++;
-        if (bullet->animationIndex > 60)
-        {
-            bullet->animationIndex = 21;
-        }
-
-        float bulletSpeed = 0.025f;
-        glm::vec3 direction = glm::vec3(cos(bullet->turretRelativeRotationWhenBulletWasShot.y),
-            0,
-            -sin(bullet->turretRelativeRotationWhenBulletWasShot.y));
-        bullet->position += direction * bulletSpeed;
-
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, bullet->position);
-        modelMatrix = glm::rotate(modelMatrix, RADIANS(270), glm::vec3(0, 1, 0));
-        modelMatrix = glm::rotate(modelMatrix, bullet->turretRelativeRotationWhenBulletWasShot.y, glm::vec3(0, 1, 0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(bullet->bulletScale));
-
-        RenderMesh(bullet->meshes["projectile" + to_string(bullet->animationIndex)], shaders["ShaderTank"], modelMatrix);
-
-        if (currentTime - bullet->shootedTime > 7.0f)
-        {
-			bullet->timerExpired = true;
+        bool res = bullet->RendBullet(currentTime, shaders);
+        if (res == false)
+		{
+			bullets.erase(bullets.begin());
 		}
 	}
 }
@@ -337,10 +306,10 @@ void m1::InitTema2::RenderGround()
 
 void InitTema2::Init()
 {
-    CreateTankEntity();
-    ParseTextures();
 
-    // Create a shader program for drawing face polygon with the color of the normal
+    CreateTankEntity();
+
+
     {
         Shader *shader = new Shader("ShaderTank");
         shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "shaders", "TextureVertexShader.glsl"), GL_VERTEX_SHADER);
@@ -349,6 +318,7 @@ void InitTema2::Init()
         shaders[shader->GetName()] = shader;
     }
 
+    
     camera = new Camera();
     camera->Set(glm::vec3(-5, 2.5f, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
     initialCameraPosition = glm::vec3(-5, 2.5f, 0);
@@ -369,7 +339,7 @@ void InitTema2::FrameStart()
 
 void InitTema2::UpdateAnimationTrackers(bool &animationIncreaser)
 {
-    if (animationSkipper >= 24)
+    if (animationSkipper >= 16)
     {
         if (animationIncreaser == false)
         {
@@ -395,9 +365,10 @@ void InitTema2::DetectInput()
     // If right click is not pressed
     {
         glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(tankRotate.y), 0, -sin(tankRotate.y)));
-        float moveSpeed = 0.007f;
-        float moveSpeedFast = 0.030f;
-        float moveSpeedSlow = 0.005f;
+        float moveSpeed = 0.09f;
+        float moveSpeedFast = 0.20f;
+        float moveSpeedSlow = 0.07f;
+        float moveSpeedVSlow = 0.04f;
         bool animationIncreaser = false;
         wheelTilt.y = 0;
 
@@ -425,24 +396,21 @@ void InitTema2::DetectInput()
             camera->MoveForward(-moveSpeedSlow);
         }
 
-        // Calculate the look-at point before rotation
-        glm::vec3 lookAtPoint = camera->position + camera->forward * camera->distanceToTarget;
-
         // On key A, rotate the tank to the left
         if (window->KeyHold(GLFW_KEY_A))
         {
-            tankRotate.y += moveSpeedSlow;
+            tankRotate.y += moveSpeedVSlow;
             wheelTilt.y = 0.3f;
             animationSkipper++;
-            camera->RotateThirdPerson_OY(moveSpeedSlow, tankTranslate);
+            camera->RotateThirdPerson_OY(moveSpeedVSlow, tankTranslate);
         }
         // On key D, rotate the tank to the right
         if (window->KeyHold(GLFW_KEY_D))
         {
-            tankRotate.y -= moveSpeedSlow;
+            tankRotate.y -= moveSpeedVSlow;
             wheelTilt.y = -0.3f;
             animationSkipper++;
-            camera->RotateThirdPerson_OY(-moveSpeedSlow, tankTranslate);
+            camera->RotateThirdPerson_OY(-moveSpeedVSlow, tankTranslate);
         }
 
         UpdateAnimationTrackers(animationIncreaser);
@@ -516,12 +484,11 @@ void InitTema2::OnInputUpdate(float deltaTime, int mods)
     if (window->KeyHold(GLFW_KEY_1))
     {
         fov += deltaTime * cameraSpeed;
-        if (fov > 150.0f)
+        if (fov > 175.0f)
         {
-            fov = 150.0f;
+            fov = 175.0f;
         }
         projectionMatrix = glm::perspective(RADIANS(fov), window->props.aspectRatio, 0.01f, 100.f);
-        
     }
 
     if (window->KeyHold(GLFW_KEY_2))

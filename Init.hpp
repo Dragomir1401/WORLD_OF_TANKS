@@ -6,6 +6,9 @@
 #include "lab_camera.hpp"
 #include "Bullet.hpp"
 
+namespace m1 {
+    class Bullet; // Forward declaration
+}
 
 namespace m1
 {
@@ -16,6 +19,7 @@ namespace m1
         ~InitTema2();
 
         void Init() override;
+        static void RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix);
 
      private:
         void CreateTankEntity();
@@ -37,7 +41,6 @@ namespace m1
         void DetectInput();
         glm::vec3 ComputeRotationBasedOnMouse();
         void PositionCameraThirdPerson(int deltaX, int deltaY);
-        void RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix);
         void ShootOnLeftClick();
         void MoveBulletsInLine();
         void RenderGround();
@@ -47,7 +50,7 @@ namespace m1
         std::unordered_map<std::string, Mesh*> tankObjects;
         std::unordered_map<std::string, Mesh*> projectileObjects;
         std::unordered_map<std::string, Texture2D*> textures;
-        std::vector<Bullet*> bullets;
+        std::vector<m1::Bullet*> bullets;
         int animationIndex = 250;
         glm::vec3 lastWheelPosition;
         glm::vec3 tankTranslate = glm::vec3(0, 0, 0);
@@ -56,13 +59,13 @@ namespace m1
         glm::vec3 turretRelativeRotate = glm::vec3(0, 0, 0);
         glm::vec3 wheelTilt = glm::vec3(0, 0, 0);
         int animationSkipper = 0;
-        glm::mat4 projectionMatrix;
+        static glm::mat4 projectionMatrix;
         glm::vec3 initialCameraPosition = glm::vec3(0, 0, 0);
         glm::vec3 lastTuretRotation = glm::vec3(0, 0, 0);
         glm::vec3 tankCurrentPosition = glm::vec3(0, 0, 0);
         glm::mat4 tankWorldMatrix;
         glm::mat4 turretWorldMatrix;
-        Camera* camera;
+        static Camera* camera;
         float right;
         float left;
         float bottom;

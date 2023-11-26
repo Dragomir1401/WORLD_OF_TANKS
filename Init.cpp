@@ -13,6 +13,8 @@ using namespace m1;
  *  To find out more about `FrameStart`, `Update`, `FrameEnd`
  *  and the order in which they are called, see `world.cpp`.
  */
+glm::mat4 m1::InitTema2::projectionMatrix;
+m1::Camera* m1::InitTema2::camera;
 
 
 InitTema2::InitTema2()
@@ -259,40 +261,14 @@ void m1::InitTema2::ShootOnLeftClick()
 
 void m1::InitTema2::MoveBulletsInLine()
 {
-    // Move the bullets in a straight line
-    for (auto &bullet : bullets)
+    for (auto& bullet : bullets)
     {
-        if (bullet->timerExpired == true)
+        bool res = bullet->RendBullet(currentTime, shaders);
+        if (res == false)
         {
-			bullets.erase(std::remove(bullets.begin(), bullets.end(), bullet), bullets.end());
-			continue;
-		}
-
-        bullet->animationIndex++;
-        if (bullet->animationIndex > 60)
-        {
-            bullet->animationIndex = 21;
+            bullets.erase(bullets.begin());
         }
-
-        float bulletSpeed = 0.025f;
-        glm::vec3 direction = glm::vec3(cos(bullet->turretRelativeRotationWhenBulletWasShot.y),
-            0,
-            -sin(bullet->turretRelativeRotationWhenBulletWasShot.y));
-        bullet->position += direction * bulletSpeed;
-
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, bullet->position);
-        modelMatrix = glm::rotate(modelMatrix, RADIANS(270), glm::vec3(0, 1, 0));
-        modelMatrix = glm::rotate(modelMatrix, bullet->turretRelativeRotationWhenBulletWasShot.y, glm::vec3(0, 1, 0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(bullet->bulletScale));
-
-        RenderMesh(bullet->meshes["projectile" + to_string(bullet->animationIndex)], shaders["ShaderTank"], modelMatrix);
-
-        if (currentTime - bullet->shootedTime > 7.0f)
-        {
-			bullet->timerExpired = true;
-		}
-	}
+    }
 }
 
 void m1::InitTema2::RenderGround()

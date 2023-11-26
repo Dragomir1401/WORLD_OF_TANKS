@@ -13,8 +13,12 @@ namespace m1
 	class Tank
 	{
 	public:
-		Tank(std::unordered_map<std::string, Mesh*> tankObjects);
+		Tank(
+			std::unordered_map<std::string, Mesh*> tankObjects,
+			glm::vec3 initialPosition);
 		~Tank();
+
+		glm::vec3 GetInitialPosition() { return initialPosition; }
 
 		glm::mat4 RenderBody(
 			std::unordered_map<std::string, Shader*> shaders,
@@ -45,5 +49,6 @@ namespace m1
 		std::unordered_map<std::string, Mesh*> tankObjects;
 		float tankScale = 0.35f;
 		float wheelScale = 0.385f;
+		glm::vec3 initialPosition;
 	};
 } // namespace m1

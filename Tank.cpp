@@ -1,8 +1,11 @@
 #include "Tank.hpp"
 
-m1::Tank::Tank(std::unordered_map<std::string, Mesh*> tankObjects)
+m1::Tank::Tank(
+    std::unordered_map<std::string, Mesh*> tankObjects,
+    glm::vec3 initialPosition)
 {
     this->tankObjects = tankObjects;
+    this->initialPosition = initialPosition;
 }
 
 m1::Tank::~Tank()
@@ -17,6 +20,7 @@ glm::mat4 m1::Tank::RenderBody(
     glm::vec3 tankAdjustedTranslate = tankTranslate / tankScale;
 
     glm::mat4 modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, initialPosition);
     modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
     modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
@@ -34,6 +38,7 @@ m1::TurretOrientation m1::Tank::RenderTurret(
 {
     glm::vec3 tankAdjustedTranslate = tankTranslate / tankScale;
     glm::mat4 modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, initialPosition);
     modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
     modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
@@ -56,6 +61,7 @@ void m1::Tank::RenderTun(
 {
     glm::vec3 tankAdjustedTranslate = tankTranslate / tankScale;
     glm::mat4 modelMatrix = glm::mat4(1);
+    modelMatrix = glm::translate(modelMatrix, initialPosition);
     modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
     modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
@@ -75,13 +81,24 @@ void m1::Tank::RenderWheels(
     glm::vec3 wheelAdjustedRotate = tankRotate;
     int animationIndexReverse = 250 - animationIndex + 1;
 
+    glm::mat4 intermediateModelMatrix1 = glm::mat4(1);
+    glm::mat4 intermediateModelMatrix2 = glm::mat4(1);
+
+    intermediateModelMatrix1 = glm::translate(intermediateModelMatrix1, initialPosition);
+    intermediateModelMatrix1 = glm::scale(intermediateModelMatrix1, glm::vec3(wheelScale));
+    intermediateModelMatrix1 = glm::translate(intermediateModelMatrix1, wheelAdjustedTranslate);
+    intermediateModelMatrix1 = glm::rotate(intermediateModelMatrix1, tankRotate.y, glm::vec3(0, 1, 0));
+
+    intermediateModelMatrix2 = glm::translate(intermediateModelMatrix2, initialPosition);
+    intermediateModelMatrix2 = glm::scale(intermediateModelMatrix2, glm::vec3(wheelScale));
+    intermediateModelMatrix2 = glm::rotate(intermediateModelMatrix2, RADIANS(180), glm::vec3(0, 1, 0));
+    intermediateModelMatrix2 = glm::translate(intermediateModelMatrix2, -wheelAdjustedTranslate);
+    intermediateModelMatrix2 = glm::rotate(intermediateModelMatrix2, tankRotate.y, glm::vec3(0, 1, 0));
+
     {
         // Rend the wheel 1 out of 8 at animationIndex
         std::string name = "wheel" + std::to_string(animationIndexReverse);
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
-        modelMatrix = glm::translate(modelMatrix, wheelAdjustedTranslate);
-        modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+        glm::mat4 modelMatrix = intermediateModelMatrix1;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(3.4f, -0.39f, 0.35f));
         modelMatrix = glm::rotate(modelMatrix, wheelTilt.y, glm::vec3(0, 1, 0));
         m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
@@ -90,10 +107,7 @@ void m1::Tank::RenderWheels(
     {
         // Rend the wheel 2 out of 8 at animationIndex
         std::string name = "wheel" + std::to_string(animationIndexReverse);
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
-        modelMatrix = glm::translate(modelMatrix, wheelAdjustedTranslate);
-        modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+        glm::mat4 modelMatrix = intermediateModelMatrix1;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0.9f, -0.42f, 0.35f));
         m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
     }
@@ -101,10 +115,7 @@ void m1::Tank::RenderWheels(
     {
         // Rend the wheel 3  out of 8 at animationIndex
         std::string name = "wheel" + std::to_string(animationIndexReverse);
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
-        modelMatrix = glm::translate(modelMatrix, wheelAdjustedTranslate);
-        modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+        glm::mat4 modelMatrix = intermediateModelMatrix1;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.6f, -0.42f, 0.35f));
         m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
     }
@@ -112,10 +123,7 @@ void m1::Tank::RenderWheels(
     {
         // Rend the wheel 4 out of 8 at animationIndex
         std::string name = "wheel" + std::to_string(animationIndexReverse);
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
-        modelMatrix = glm::translate(modelMatrix, wheelAdjustedTranslate);
-        modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+        glm::mat4 modelMatrix = intermediateModelMatrix1;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.7f, -0.42f, 0.35f));
         m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
     }
@@ -123,11 +131,7 @@ void m1::Tank::RenderWheels(
     {
         // Rend the wheel 5 out of 8 at animationIndex
         std::string name = "wheel" + std::to_string(animationIndex);
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
-        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
-        modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
-        modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+        glm::mat4 modelMatrix = intermediateModelMatrix2;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(3.8f, -0.39f, 0.35f));
         m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
     }
@@ -135,11 +139,7 @@ void m1::Tank::RenderWheels(
     {
         // Rend the wheel 6 out of 8 at animationIndex
         std::string name = "wheel" + std::to_string(animationIndex);
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
-        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
-        modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
-        modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+        glm::mat4 modelMatrix = intermediateModelMatrix2;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(1.7f, -0.42f, 0.35f));
         m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
     }
@@ -147,11 +147,7 @@ void m1::Tank::RenderWheels(
     {
         // Rend the wheel 7 out of 8 at animationIndex
         std::string name = "wheel" + std::to_string(animationIndex);
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
-        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
-        modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
-        modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+        glm::mat4 modelMatrix = intermediateModelMatrix2;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.8f, -0.42f, 0.35f));
         m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
     }
@@ -159,11 +155,7 @@ void m1::Tank::RenderWheels(
     {
         // Rend the wheel 8 out of 8 at animationIndex
         std::string name = "wheel" + std::to_string(animationIndex);
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(wheelScale));
-        modelMatrix = glm::rotate(modelMatrix, RADIANS(180), glm::vec3(0, 1, 0));
-        modelMatrix = glm::translate(modelMatrix, -wheelAdjustedTranslate);
-        modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+        glm::mat4 modelMatrix = intermediateModelMatrix2;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.4f, -0.42f, 0.35f));
         modelMatrix = glm::rotate(modelMatrix, wheelTilt.y, glm::vec3(0, 1, 0));
         m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);

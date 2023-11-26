@@ -21,39 +21,89 @@ InitTema2::~InitTema2()
 {
 }
 
-void InitTema2::CreateTankEntity()
+void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
 {
-    const string sourceObjDirTank = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "tank", "terog");
-
     {
         Mesh* mesh = new Mesh("body");
         mesh->LoadMesh(sourceObjDirTank, "body.obj");
-        tankObjects["body"] = mesh;
+       
+        if (!isEnemy)
+        {
+            tankObjects["body"] = mesh;
+        }
+        else
+        {
+            enemyTankObjects["body"] = mesh;
+        }
     }
 
     {
 		Mesh* mesh = new Mesh("tun");
 		mesh->LoadMesh(sourceObjDirTank, "tunGun.obj");
-		tankObjects["tun"] = mesh;
+		
+        if (!isEnemy)
+        {
+			tankObjects["tun"] = mesh;
+		}
+        else
+        {
+			enemyTankObjects["tun"] = mesh;
+		}
 	}
 
     {
         Mesh* mesh = new Mesh("turet");
         mesh->LoadMesh(sourceObjDirTank, "tun.obj");
-        tankObjects["turet"] = mesh;
+
+        if (!isEnemy)
+        {
+            tankObjects["turet"] = mesh;
+        }
+        else
+        {
+			enemyTankObjects["turet"] = mesh;
+		}
     }
 
-    // for to 250 load wheels animation
     for (int i = 1; i <= 250; i++)
     {
 		string name = "wheel" + to_string(i);
 		string nameObj = "wheel" + to_string(i) + ".obj";
 		Mesh* mesh = new Mesh(name);
 		mesh->LoadMesh(sourceObjDirTank, nameObj);
-		tankObjects[name] = mesh;
+
+        if (!isEnemy)
+        {
+			tankObjects[name] = mesh;
+		}
+        else
+        {
+			enemyTankObjects[name] = mesh;
+		}
 	}
 
-    tank = new Tank(tankObjects);
+    if (!isEnemy)
+    {
+        tank = new Tank(tankObjects, glm::vec3(0, 0, 0));
+    }
+    else
+    {
+        for (int i = 0; i < NUM_ENEMY_TANKS; i++)
+        {
+			glm::vec3 initialPosition = glm::vec3(0, 0, 0);
+            initialPosition.x = rand() % 15;
+			initialPosition.z = rand() % 15;
+			Tank* enemyTank = new Tank(enemyTankObjects, initialPosition);
+			enemyTanks.push_back(enemyTank);
+		}
+	}
+}
+
+
+void m1::InitTema2::CreateEmemyTankEntity()
+{
+    string sourceObjDirEnemyTank = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "tank", "enemyTank");
+	CreateTankEntity(sourceObjDirEnemyTank, true);
 }
 
 void InitTema2::CreateProjectileEntity()
@@ -88,6 +138,17 @@ void m1::InitTema2::RenderTankEntity()
     turretOrientation = tank->RenderTurret(shaders, tankTranslate, tankRotate, ComputeRotationBasedOnMouse());
     tank->RenderTun(shaders, tankTranslate, tankRotate, ComputeRotationBasedOnMouse());
     tank->RenderWheels(shaders, tankTranslate, tankRotate, wheelTilt, animationIndex);
+}
+
+void m1::InitTema2::RenderEnemyTankEntity()
+{
+    for (auto& enemyTank : enemyTanks)
+    {
+		enemyTank->RenderBody(shaders, enemyTank->GetInitialPosition(), tankRotate);
+		enemyTank->RenderTurret(shaders, enemyTank->GetInitialPosition(), tankRotate, ComputeRotationBasedOnMouse());
+		enemyTank->RenderTun(shaders, enemyTank->GetInitialPosition(), tankRotate, ComputeRotationBasedOnMouse());
+		enemyTank->RenderWheels(shaders, enemyTank->GetInitialPosition(), tankRotate, wheelTilt, animationIndex);
+	}
 }
 
 void m1::InitTema2::RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix)
@@ -145,8 +206,8 @@ void m1::InitTema2::RenderGround()
 
 void InitTema2::Init()
 {
-
-    CreateTankEntity();
+    CreateTankEntity(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "tank", "myTank"), false);   
+    CreateEmemyTankEntity();
     CreateProjectileEntity();
     CreateGroundEntity();
 
@@ -289,6 +350,7 @@ void m1::InitTema2::PositionCameraThirdPerson(int deltaX, int deltaY)
 void InitTema2::Update(float deltaTimeSeconds)
 {
     RenderTankEntity();
+    RenderEnemyTankEntity();
     DetectInput();
     ShootOnLeftClick();
     MoveBulletsInLine();

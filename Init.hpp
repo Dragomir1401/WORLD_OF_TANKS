@@ -21,6 +21,7 @@ namespace m1 {
 namespace m1 {
 	class Ground; // Forward declaration
 }
+#define NUM_ENEMY_TANKS 3
 
 namespace m1
 {
@@ -36,10 +37,12 @@ namespace m1
         static Camera* camera;
 
      private:
-        void CreateTankEntity();
+        void CreateTankEntity(std::string sourceObjDirTank, bool isEnemy);
+        void CreateEmemyTankEntity();
         void CreateProjectileEntity();
         void CreateGroundEntity();
         void RenderTankEntity();
+        void RenderEnemyTankEntity();
         void FrameStart() override;
         void Update(float deltaTimeSeconds) override;
         void FrameEnd() override;
@@ -61,20 +64,19 @@ namespace m1
         void RenderGround();
         
         float elapsedTime = 0;
-        m1::Tank* tank;
-        m1::Ground* ground;
+        m1::Tank* tank = nullptr;
+        m1::Ground* ground = nullptr;
+        std::vector<m1::Tank*> enemyTanks;
         std::vector<m1::Bullet*> bullets;
         std::unordered_map<std::string, Mesh*> tankObjects;
+        std::unordered_map<std::string, Mesh*> enemyTankObjects;
         std::unordered_map<std::string, Mesh*> projectileObjects;
         std::unordered_map<std::string, Mesh*> groundObjects;
-        std::unordered_map<std::string, Texture2D*> textures;
         int animationIndex = 250;
-        glm::vec3 lastWheelPosition = glm::vec3(0, 0, 0);
+        int animationSkipper = 0;
         glm::vec3 tankTranslate = glm::vec3(0, 0, 0);
         glm::vec3 tankRotate = glm::vec3(0, 0, 0);
-        glm::vec3 turretRotate = glm::vec3(0, 0, 0);
         glm::vec3 wheelTilt = glm::vec3(0, 0, 0);
-        int animationSkipper = 0;
         glm::vec3 initialCameraPosition = glm::vec3(0, 0, 0);
         glm::vec3 lastTuretRotation = glm::vec3(0, 0, 0);
         glm::vec3 tankCurrentPosition = glm::vec3(0, 0, 0);

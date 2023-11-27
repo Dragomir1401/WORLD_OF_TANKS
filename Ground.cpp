@@ -13,8 +13,6 @@ void m1::Ground::RenderGround(std::unordered_map<std::string, Shader*> shaders)
 {
     glm::mat4 modelMatrix;
     std::vector<glm::vec3> translations;
-    std::vector<glm::vec3> translations1;
-
 
     for (int i = -groundBoxNumbers; i <= groundBoxNumbers; ++i) {
         for (int j = -groundBoxNumbers; j <= groundBoxNumbers; ++j) {

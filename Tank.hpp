@@ -19,6 +19,7 @@ namespace m1
 		~Tank();
 
 		glm::vec3 GetInitialPosition() { return initialPosition; }
+		float GetTankRadius() { return tankRadius; }
 
 		glm::mat4 RenderBody(
 			std::unordered_map<std::string, Shader*> shaders,
@@ -50,5 +51,6 @@ namespace m1
 		float tankScale = 0.35f;
 		float wheelScale = 0.385f;
 		glm::vec3 initialPosition;
+		float tankRadius = 5.0f;
 	};
 } // namespace m1

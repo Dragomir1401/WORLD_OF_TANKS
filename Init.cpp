@@ -490,8 +490,35 @@ void InitTema2::Update(float deltaTimeSeconds)
     RenderGround();
     RenderBuildings();
     RenderSky();
+    CheckTankBuildingCollision(tank);
 
     currentTime += deltaTimeSeconds;
+}
+
+void InitTema2::CheckTankBuildingCollision(m1::Tank* tank)
+{
+    // For each building postion
+    for (int i = 0; i < building->GetBuildingPositions().size(); i++)
+    {
+		float buildingRadius = building->GetBuildingRadiusPerType()[building->GetBuildingTypes()[i]];
+        float tankRadius = tank->GetTankRadius();
+        float distanceBetweenTankAndBuilding = glm::distance(tankPosition.tankCurrentPosition, building->GetBuildingPositions()[i]);
+        glm::vec3 lastTankPosition = tankPosition.tankCurrentPosition;
+        
+        // If the distance between the tank and the building is less than the sum of their radiuses
+        if (distanceBetweenTankAndBuilding < buildingRadius + tankRadius)
+        {
+            // print buildinRadius and distance
+            cout << "buildingRadius: " << buildingRadius << endl;
+            cout << "distanceBetweenTankAndBuilding: " << distanceBetweenTankAndBuilding << endl;
+            // print building position and tank position
+            cout << "building position: " << building->GetBuildingPositions()[i].x << " " << building->GetBuildingPositions()[i].y << " " << building->GetBuildingPositions()[i].z << endl;
+            cout << "tank position: " << tankPosition.tankCurrentPosition.x << " " << tankPosition.tankCurrentPosition.y << " " << tankPosition.tankCurrentPosition.z << endl;
+			// Move the tank back to the last position
+			tankPosition.tankCurrentPosition = lastTankPosition;
+			tankMovement->tankTranslate = lastTankPosition;
+		}
+	}
 }
 
 

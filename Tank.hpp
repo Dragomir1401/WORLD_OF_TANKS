@@ -8,6 +8,13 @@
 #include "TurretOrientation.hpp"
 #include "Init.hpp"
 
+namespace m1 {
+	class Tank; // Forward declaration
+}
+namespace m1 {
+	class Building; // Forward declaration
+}
+
 namespace m1
 {
 	class Tank
@@ -46,11 +53,15 @@ namespace m1
 			glm::vec3 wheelTilt,
 			int animationIndex);
 
+		bool CheckTankBuildingCollision(
+			Building* buildingBlock,
+			glm::vec3 tankPosition);
+
 	private:
 		std::unordered_map<std::string, Mesh*> tankObjects;
 		float tankScale = 0.35f;
 		float wheelScale = 0.385f;
 		glm::vec3 initialPosition;
-		float tankRadius = 5.0f;
+		float tankRadius = 5.0f * 0.35f;
 	};
 } // namespace m1

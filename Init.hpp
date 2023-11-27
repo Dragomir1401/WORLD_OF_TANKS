@@ -88,7 +88,6 @@ namespace m1
         void RenderGround();
         void RenderSky();
         void RenderBuildings();
-        void CheckTankBuildingCollision(m1::Tank*);
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;

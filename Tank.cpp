@@ -162,3 +162,23 @@ void m1::Tank::RenderWheels(
     }
 }
 
+
+bool m1::Tank::CheckTankBuildingCollision(
+    m1::Building* buildingBlock,
+    glm::vec3 tankPosition)
+{
+    // For each building postion
+    for (int i = 0; i < buildingBlock->GetBuildingPositions().size(); i++)
+    {
+        float buildingRadius = buildingBlock->GetBuildingRadiusPerType()[buildingBlock->GetBuildingTypes()[i]];
+        float tankRadius = this->GetTankRadius();
+        float distanceBetweenTankAndBuilding = glm::distance(tankPosition, buildingBlock->GetBuildingPositions()[i]);
+
+        // If the distance between the tank and the building is less than the sum of their radiuses
+        if (distanceBetweenTankAndBuilding < buildingRadius + tankRadius)
+        {
+            return true;
+        }
+    }
+    return false;
+}

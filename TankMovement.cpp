@@ -113,7 +113,7 @@ void m1::TankMovement::UpdateMovementState(
 	}
 }
 
-void m1::TankMovement::IdleMove(float currentTime)
+void m1::TankMovement::IdleMove(float currentTime, m1::Tank* tank, m1::Building* building)
 {
 	glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(this->tankRotate.y), 0, -sin(this->tankRotate.y)));
 
@@ -126,6 +126,12 @@ void m1::TankMovement::IdleMove(float currentTime)
 	{
 		this->animationSkipper += 2;
 		this->tankTranslate += moveSpeed * forwardDir;
+		if (tank->CheckTankBuildingCollision(building, this->tankTranslate))
+		{
+			std::cout << "Tank is colliding " << std::endl;
+			this->animationSkipper -= 2;
+			this->tankTranslate -= moveSpeed * forwardDir;
+		}
 	}
 	else if (randomNumber >= 0 && randomNumber < 50)
 	{
@@ -137,6 +143,12 @@ void m1::TankMovement::IdleMove(float currentTime)
 	{
 		this->animationSkipper += 8;
 		this->tankTranslate += moveSpeedFast * forwardDir;
+		if (tank->CheckTankBuildingCollision(building, this->tankTranslate))
+		{
+			std::cout << "Tank is colliding " << std::endl;
+			this->animationSkipper -= 8;
+			this->tankTranslate -= moveSpeedFast * forwardDir;
+		}
 	}
 	else if (randomNumber >= 50 && randomNumber < 60)
 	{
@@ -149,6 +161,13 @@ void m1::TankMovement::IdleMove(float currentTime)
 		this->tankTranslate += moveSpeedSlow * -forwardDir;
 		this->animationSkipper++;
 		this->animationIncreaser = true;
+		if (tank->CheckTankBuildingCollision(building, this->tankTranslate))
+		{
+			std::cout << "Tank is colliding " << std::endl;
+			this->tankTranslate -= moveSpeedSlow * -forwardDir;
+			this->animationSkipper--;
+			this->animationIncreaser = false;
+		}
 	}
 	else if (randomNumber >= 60 && randomNumber < 70)
 	{

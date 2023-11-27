@@ -3,6 +3,12 @@
 #include <string>
 #include <iostream>
 #include "Init.hpp"
+namespace m1 {
+    class Tank; // Forward declaration
+}
+namespace m1 {
+    class Building; // Forward declaration
+}
 
 namespace m1
 {
@@ -36,7 +42,10 @@ namespace m1
             float deltaTime,
             glm::vec3 tankCurrentPosition);
 
-        void IdleMove(float deltaTime);
+        void IdleMove(
+            float deltaTime, 
+            Tank* tank,
+            Building* building);
 
         void UpdateMovementState(
             glm::vec3 tankCurrentPosition,

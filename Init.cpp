@@ -309,12 +309,12 @@ void m1::InitTema2::RenderBuildings()
 
 void InitTema2::Init()
 {
-    CreateTankEntity(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "tank", "myTank"), false);   
-    CreateEmemyTankEntity();
-    CreateProjectileEntity();
     CreateGroundEntity();
     CreateBuildingEntity();
     CreateSkyEntity();
+    CreateTankEntity(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "tank", "myTank"), false);   
+    CreateEmemyTankEntity();
+    CreateProjectileEntity();
 
     {
         Shader *shader = new Shader("ShaderTank");
@@ -339,6 +339,7 @@ void InitTema2::FrameStart()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::ivec2 resolution = window->GetResolution();
+
     // Sets the screen area where to draw
     glViewport(0, 0, resolution.x, resolution.y);
 }
@@ -379,14 +380,30 @@ void InitTema2::DetectInput()
     {
         tankMovement->animationSkipper += 2;
         tankMovement->tankTranslate += moveSpeed * forwardDir;
-        camera->MoveForward(moveSpeed);
+        if (!tank->CheckTankBuildingCollision(building, tankMovement->tankTranslate))
+        {
+			camera->MoveForward(moveSpeed);
+		}
+        else
+        {
+            tankMovement->animationSkipper -= 2;
+            tankMovement->tankTranslate -= moveSpeed * forwardDir;
+        }
     }
 
     if (window->KeyHold(GLFW_KEY_R))
     {
         tankMovement->animationSkipper += 8;
         tankMovement->tankTranslate += moveSpeedFast * forwardDir;
-        camera->MoveForward(moveSpeedFast);
+        if (!tank->CheckTankBuildingCollision(building, tankMovement->tankTranslate))
+        {
+            camera->MoveForward(moveSpeedFast);
+        }
+        else
+        {
+			tankMovement->animationSkipper -= 8;
+			tankMovement->tankTranslate -= moveSpeedFast * forwardDir;
+		}
     }
 
     if (window->KeyHold(GLFW_KEY_S))
@@ -394,7 +411,16 @@ void InitTema2::DetectInput()
         tankMovement->tankTranslate += moveSpeedSlow * -forwardDir;
         tankMovement->animationSkipper++;
         tankMovement->animationIncreaser = true;
-        camera->MoveForward(-moveSpeedSlow);
+        if (!tank->CheckTankBuildingCollision(building, tankMovement->tankTranslate))
+        {
+			camera->MoveForward(-moveSpeedSlow);
+		}
+        else
+        {
+			tankMovement->animationSkipper--;
+			tankMovement->tankTranslate -= moveSpeedSlow * -forwardDir;
+            tankMovement->animationIncreaser = false;
+		}
     }
 
     if (window->KeyHold(GLFW_KEY_A))
@@ -433,7 +459,10 @@ void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {
             enemyTankMovements[i]->MoveAway(myTankPosition, moveSpeed, deltaTime, enemyTankPositions[i].tankCurrentPosition);
             break;
         case m1::TankMovement::TankState::Idle:
-            enemyTankMovements[i]->IdleMove(currentTime);
+            enemyTankMovements[i]->IdleMove(currentTime, enemyTanks[i], building);
+            break;
+        default:
+            enemyTankMovements[i]->IdleMove(currentTime, enemyTanks[i], building);
             break;
         }
 
@@ -481,47 +510,21 @@ void m1::InitTema2::PositionCameraThirdPerson(int deltaX, int deltaY)
 
 void InitTema2::Update(float deltaTimeSeconds)
 {
-    RenderTankEntity();
-    RenderEnemyTankEntity();
-    RandomizeEnemyTankMovement(deltaTimeSeconds);
-    DetectInput();
-    ShootOnLeftClick();
-    MoveBulletsInLine();
     RenderGround();
     RenderBuildings();
     RenderSky();
-    CheckTankBuildingCollision(tank);
+
+    RandomizeEnemyTankMovement(deltaTimeSeconds);
+    RenderEnemyTankEntity();
+
+    DetectInput();
+    RenderTankEntity();
+
+    ShootOnLeftClick();
+    MoveBulletsInLine();
 
     currentTime += deltaTimeSeconds;
 }
-
-void InitTema2::CheckTankBuildingCollision(m1::Tank* tank)
-{
-    // For each building postion
-    for (int i = 0; i < building->GetBuildingPositions().size(); i++)
-    {
-		float buildingRadius = building->GetBuildingRadiusPerType()[building->GetBuildingTypes()[i]];
-        float tankRadius = tank->GetTankRadius();
-        float distanceBetweenTankAndBuilding = glm::distance(tankPosition.tankCurrentPosition, building->GetBuildingPositions()[i]);
-        glm::vec3 lastTankPosition = tankPosition.tankCurrentPosition;
-        
-        // If the distance between the tank and the building is less than the sum of their radiuses
-        if (distanceBetweenTankAndBuilding < buildingRadius + tankRadius)
-        {
-            // print buildinRadius and distance
-            cout << "buildingRadius: " << buildingRadius << endl;
-            cout << "distanceBetweenTankAndBuilding: " << distanceBetweenTankAndBuilding << endl;
-            // print building position and tank position
-            cout << "building position: " << building->GetBuildingPositions()[i].x << " " << building->GetBuildingPositions()[i].y << " " << building->GetBuildingPositions()[i].z << endl;
-            cout << "tank position: " << tankPosition.tankCurrentPosition.x << " " << tankPosition.tankCurrentPosition.y << " " << tankPosition.tankCurrentPosition.z << endl;
-			// Move the tank back to the last position
-			tankPosition.tankCurrentPosition = lastTankPosition;
-			tankMovement->tankTranslate = lastTankPosition;
-		}
-	}
-}
-
-
 
 void InitTema2::FrameEnd()
 {

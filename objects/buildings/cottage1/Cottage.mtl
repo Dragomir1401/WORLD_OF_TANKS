@@ -1,0 +1,26 @@
+# Blender 4.0.0 MTL File: 'Cottage_FREE.blend'
+# www.blender.org
+
+newmtl Cottage_FREE
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+aniso 0.000000
+anisor 0.000000
+map_Pm Cottage_Clean_Metallic.png
+map_Pr Cottage_Clean_Roughness.png
+map_Bump -bm 1.000000 Cottage_Clean_Normal.png
+map_Kd Cottage_Clean_Base_Color.png
+map_Ks Cottage_Dirt_Metallic.png
+map_d Cottage_Dirt_Opacity.png
+bump Cottage_Dirt_Normal.png
+map_Bump Cottage_Dirt_Normal.png
+disp Cottage_Dirt_Height.png
+refl Cottage_Dirt_MetallicSmoothness.png
+map_AO Cottage_Dirt_AO.png

@@ -28,13 +28,11 @@ void m1::TankMovement::MoveTowards(
 	float deltaTime, 
 	glm::vec3 tankCurrentPosition)
 {
-	std::cout << "TankMovement::MoveTowards" << std::endl;
-
 	// Direction from current position to target position
 	glm::vec3 directionToTarget = glm::normalize(targetPosition - tankCurrentPosition);
 
 	// Move the tank towards the target
-	tankCurrentPosition += directionToTarget * moveSpeed * deltaTime;
+	this->tankTranslate += directionToTarget * moveSpeed * deltaTime;
 
 	// Calculate the angle for the tank to rotate towards the target
 	// atan2 parameters are swapped to accommodate for the tank facing along the X-axis when tankRotate.y is zero
@@ -47,31 +45,56 @@ void m1::TankMovement::MoveTowards(
 	this->tankRotate.y = targetAngle;
 }
 
-void m1::TankMovement::MoveAway(
-	const glm::vec3& targetPosition,
-	float moveSpeed,
-	float deltaTime,
-	glm::vec3 tankCurrentPosition)
+void m1::TankMovement::MoveAway(const glm::vec3& targetPosition, float moveSpeed, float deltaTime, glm::vec3 tankCurrentPosition)
 {
-	std::cout << "TankMovement::MoveAway" << std::endl;
-	glm::vec3 directionAwayFromTarget = glm::normalize(this->tankTranslate - targetPosition);
-	this->tankTranslate += directionAwayFromTarget * moveSpeed * deltaTime; // Move away from the player
-
-	// Rotate away from the player (opposite direction to where we want to go)
-	float targetAngle = atan2(directionAwayFromTarget.x, directionAwayFromTarget.z);
-	this->tankRotate.y = (float)(targetAngle + M_PI); // Add π radians to face the opposite direction
 }
 
-void m1::TankMovement::RotateRandomly(float deltaTime)
-{
-	std::cout << "TankMovement::RotateRandomly" << std::endl;
-	static std::default_random_engine generator(std::random_device{}());
-	std::uniform_real_distribution<float> randomRotation(-0.1f, 0.1f); // Adjust the range as needed for your game
+//void m1::TankMovement::MoveAway(
+//	const glm::vec3& targetPosition,
+//	float moveSpeed,
+//	float deltaTime,
+//	glm::vec3 tankCurrentPosition)
+//{
+	//// Calculate the vector from the tank to the player
+	//glm::vec3 directionToPlayer = glm::normalize(targetPosition - tankCurrentPosition);
 
-	// Apply a small random rotation to the tank's current rotation
-	this->tankRotate.y += randomRotation(generator) * deltaTime;
-}
+	//// Calculate the vector away from the player
+	//glm::vec3 directionAwayFromPlayer = -directionToPlayer;
 
+	//// Calculate the desired target rotation angle to face away from the player
+	//float targetRotation = atan2(directionAwayFromPlayer.x, directionAwayFromPlayer.z);
+
+	//// Normalize the current rotation
+	//glm::vec3 tankCurrentRotation = fmod(this->tankRotate, 2 * M_PI);
+
+	//// Calculate the shortest rotation direction towards the target rotation
+	//float rotationDelta = targetRotation - tankCurrentRotation;
+	//if (rotationDelta > M_PI) {
+	//	rotationDelta -= 2 * M_PI;
+	//}
+	//else if (rotationDelta < -M_PI) {
+	//	rotationDelta += 2 * M_PI;
+	//}
+
+	//// Determine the rotation amount per frame, this should be a small value for smooth rotation
+	//float rotationAmount = moveSpeedSlow * deltaTime;
+	//if (abs(rotationDelta) > rotationAmount) {
+	//	tankCurrentRotation += (rotationDelta > 0 ? rotationAmount : -rotationAmount);
+	//}
+	//else {
+	//	tankCurrentRotation = targetRotation;
+	//}
+
+	//// Convert the rotation to the forward direction
+	//glm::vec3 forwardDir = glm::vec3(sin(tankCurrentRotation), 0, cos(tankCurrentRotation));
+
+	//// Move the tank away from the player
+	//tankCurrentPosition += forwardDir * moveSpeedSlow * deltaTime;
+
+	//// Update the tank's translation and rotation to the new values
+	//this->tankTranslate = tankCurrentPosition;
+	//this->tankRotate.y = tankCurrentRotation;
+//}
 
 void m1::TankMovement::UpdateMovementState(
 	glm::vec3 tankCurrentPosition,
@@ -89,3 +112,72 @@ void m1::TankMovement::UpdateMovementState(
 		this->tankState = TankState::Idle;
 	}
 }
+
+void m1::TankMovement::IdleMove(float currentTime)
+{
+	glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(this->tankRotate.y), 0, -sin(this->tankRotate.y)));
+
+	float moveSpeed = 0.007f;
+	float moveSpeedFast = 0.030f;
+	float moveSpeedSlow = 0.005f;
+	this->wheelTilt.y = 0;
+
+	if (randomNumber >= 0 && randomNumber < 50 && currentTime - lastCommandTimer < 3.0f)
+	{
+		this->animationSkipper += 2;
+		this->tankTranslate += moveSpeed * forwardDir;
+	}
+	else if (randomNumber >= 0 && randomNumber < 50)
+	{
+		lastCommandTimer = currentTime;
+		randomNumber = rand() % 100;
+	}
+
+	if (randomNumber >= 50 && randomNumber < 60 && currentTime - lastCommandTimer < 3.0f)
+	{
+		this->animationSkipper += 8;
+		this->tankTranslate += moveSpeedFast * forwardDir;
+	}
+	else if (randomNumber >= 50 && randomNumber < 60)
+	{
+		lastCommandTimer = currentTime;
+		randomNumber = rand() % 100;
+	}
+
+	if (randomNumber >= 60 && randomNumber < 70 && currentTime - lastCommandTimer < 3.0f)
+	{
+		this->tankTranslate += moveSpeedSlow * -forwardDir;
+		this->animationSkipper++;
+		this->animationIncreaser = true;
+	}
+	else if (randomNumber >= 60 && randomNumber < 70)
+	{
+		lastCommandTimer = currentTime;
+		randomNumber = rand() % 100;
+	}
+
+	if (randomNumber >= 70 && randomNumber < 85 && currentTime - lastCommandTimer < 3.0f)
+	{
+		this->tankRotate.y += moveSpeedSlow;
+		this->wheelTilt.y = 0.3f;
+		this->animationSkipper++;
+	}
+	else if (randomNumber >= 70 && randomNumber < 85)
+	{
+		lastCommandTimer = currentTime;
+		randomNumber = rand() % 100;
+	}
+
+	if (randomNumber >= 85 && randomNumber < 100 && currentTime - lastCommandTimer < 3.0f)
+	{
+		this->tankRotate.y -= moveSpeedSlow;
+		this->wheelTilt.y = -0.3f;
+		this->animationSkipper++;
+	}
+	else if (randomNumber >= 85 && randomNumber < 100)
+	{
+		lastCommandTimer = currentTime;
+		randomNumber = rand() % 100;
+	}
+}
+

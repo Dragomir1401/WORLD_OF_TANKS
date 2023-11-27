@@ -36,7 +36,7 @@ namespace m1
             float deltaTime,
             glm::vec3 tankCurrentPosition);
 
-        void RotateRandomly(float deltaTime);
+        void IdleMove(float deltaTime);
 
         void UpdateMovementState(
             glm::vec3 tankCurrentPosition,
@@ -50,5 +50,7 @@ namespace m1
         int animationIndex = 250;
         bool animationIncreaser = false;
         TankState tankState = TankState::Idle;
+        float lastCommandTimer = 0;
+        int randomNumber = rand() % 100;
     };
 } // namespace m1

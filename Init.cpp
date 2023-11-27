@@ -156,6 +156,72 @@ void InitTema2::CreateGroundEntity()
     ground = new Ground(groundObjects);
 }
 
+void m1::InitTema2::CreateSkyEntity()
+{
+    const string sourceObjDirSky = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "sky");
+    {
+		Mesh* mesh = new Mesh("sky");
+		mesh->LoadMesh(sourceObjDirSky, "sky.obj");
+		skyObjects["sky"] = mesh;
+	}
+
+	sky = new Sky(skyObjects);
+}
+
+void m1::InitTema2::CreateBuildingEntity()
+{
+    const string sourceObjDirCottage1 = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "buildings", "cottage1");
+    {
+        Mesh* mesh = new Mesh("cottage1");
+        mesh->LoadMesh(sourceObjDirCottage1, "Cottage.obj");
+        buildingObjects["cottage1"] = mesh;
+    }
+
+    const string sourceObjDirCottage2 = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "buildings", "cottage2");
+    {
+        Mesh* mesh = new Mesh("cottage2");
+        mesh->LoadMesh(sourceObjDirCottage2, "cottage.obj");
+        buildingObjects["cottage2"] = mesh;
+    }
+
+    const string sourceObjDirCottage3 = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "buildings", "cottage3");
+    {
+        Mesh* mesh = new Mesh("cottage3");
+        mesh->LoadMesh(sourceObjDirCottage3, "cottage.obj");
+        buildingObjects["cottage3"] = mesh;
+    }
+
+    const string sourceObjDirCottage4 = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "buildings", "cottage4");
+    {
+        Mesh* mesh = new Mesh("cottage4");
+        mesh->LoadMesh(sourceObjDirCottage4, "cottage.obj");
+        buildingObjects["cottage4"] = mesh;
+    }
+
+    const string sourceObjDirCottage5 = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "buildings", "cottage5");
+    {
+        Mesh* mesh = new Mesh("cottage5");
+        mesh->LoadMesh(sourceObjDirCottage5, "cottage.obj");
+        buildingObjects["cottage5"] = mesh;
+    }
+
+    const string sourceObjDirChurch = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "buildings", "church");
+    {
+        Mesh* mesh = new Mesh("church");
+        mesh->LoadMesh(sourceObjDirChurch, "church.obj");
+        buildingObjects["church"] = mesh;
+    }
+
+    const string sourceObjDirTower = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "buildings", "tower");
+    {
+        Mesh* mesh = new Mesh("tower");
+        mesh->LoadMesh(sourceObjDirTower, "tower.obj");
+        buildingObjects["tower"] = mesh;
+    }
+    
+    building = new Building(buildingObjects);
+}
+
 void m1::InitTema2::RenderTankEntity()
 {
     tankPosition.tankWorldMatrix = tank->RenderBody(shaders, tankMovement->tankTranslate, tankMovement->tankRotate);
@@ -169,13 +235,12 @@ void m1::InitTema2::RenderEnemyTankEntity()
 {
     for (int i = 0; i < NUM_ENEMY_TANKS; i++)
     {
+        // moving tank to
         enemyTankPositions[i].tankWorldMatrix = enemyTanks[i]->RenderBody(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate);
         enemyTankPositions[i].tankCurrentPosition = enemyTankPositions[i].tankWorldMatrix[3];
         enemyTankPositions[i].turretOrientation = enemyTanks[i]->RenderTurret(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, ComputeRotationBasedOnMouse());
         enemyTanks[i]->RenderTun(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, ComputeRotationBasedOnMouse());
         enemyTanks[i]->RenderWheels(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, enemyTankMovements[i]->wheelTilt, enemyTankMovements[i]->animationIndex);
-
-        //cout << "Enemy tank position: " << enemyTankPositions[i].tankCurrentPosition.x << " " << enemyTankPositions[i].tankCurrentPosition.y << " " << enemyTankPositions[i].tankCurrentPosition.z << endl;
 	}
 }
 
@@ -232,12 +297,24 @@ void m1::InitTema2::RenderGround()
     ground->RenderGround(shaders);
 }
 
+void m1::InitTema2::RenderSky()
+{
+    sky->RenderSky(shaders);
+}
+
+void m1::InitTema2::RenderBuildings()
+{
+    building->RenderBuilding(shaders);
+}
+
 void InitTema2::Init()
 {
     CreateTankEntity(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "tank", "myTank"), false);   
     CreateEmemyTankEntity();
     CreateProjectileEntity();
     CreateGroundEntity();
+    CreateBuildingEntity();
+    CreateSkyEntity();
 
     {
         Shader *shader = new Shader("ShaderTank");
@@ -340,12 +417,13 @@ void InitTema2::DetectInput()
 
 void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {
     glm::vec3 myTankPosition = tankPosition.tankCurrentPosition;
-    float moveSpeed = 0.007f;
+    float moveSpeed = 0.7f;
 
     for (int i = 0; i < NUM_ENEMY_TANKS; i++)
     {
-        enemyTankMovements[i]->UpdateMovementState(enemyTankPositions[i].tankCurrentPosition, myTankPosition);
+        //enemyTankMovements[i]->UpdateMovementState(enemyTankPositions[i].tankCurrentPosition, myTankPosition);
 
+        enemyTankMovements[i]->tankState = TankMovement::TankState::Idle;
         switch (enemyTankMovements[i]->tankState)
         {
         case m1::TankMovement::TankState::Chase:
@@ -355,8 +433,7 @@ void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {
             enemyTankMovements[i]->MoveAway(myTankPosition, moveSpeed, deltaTime, enemyTankPositions[i].tankCurrentPosition);
             break;
         case m1::TankMovement::TankState::Idle:
-            // Perform idle behavior like random rotations
-            enemyTankMovements[i]->RotateRandomly(deltaTime);
+            enemyTankMovements[i]->IdleMove(currentTime);
             break;
         }
 
@@ -411,6 +488,8 @@ void InitTema2::Update(float deltaTimeSeconds)
     ShootOnLeftClick();
     MoveBulletsInLine();
     RenderGround();
+    RenderBuildings();
+    RenderSky();
 
     currentTime += deltaTimeSeconds;
 }

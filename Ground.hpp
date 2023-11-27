@@ -19,5 +19,6 @@ namespace m1
 		std::unordered_map<std::string, Mesh*> groundObjects;
 		float groundHeight = 0.02f;
 		float groundLength = 20.0f;
+		int groundBoxNumbers = 8;
 	};
 } // namespace m1

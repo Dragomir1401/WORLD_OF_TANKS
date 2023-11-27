@@ -9,6 +9,8 @@
 #include "TurretOrientation.hpp"
 #include "Ground.hpp"
 #include "TankMovement.hpp"
+#include "Building.hpp"
+#include "Sky.hpp"
 #define NUM_ENEMY_TANKS 3
 
 namespace m1 {
@@ -25,6 +27,12 @@ namespace m1 {
 }
 namespace m1 {
 	class TankMovement; // Forward declaration
+}
+namespace m1 {
+	class Building; // Forward declaration
+}
+namespace m1 {
+	class Sky; // Forward declaration
 }
 
 
@@ -54,6 +62,8 @@ namespace m1
         void CreateEmemyTankEntity();
         void CreateProjectileEntity();
         void CreateGroundEntity();
+        void CreateSkyEntity();
+        void CreateBuildingEntity();
         void RenderTankEntity();
         void RenderEnemyTankEntity();
         void FrameStart() override;
@@ -76,12 +86,16 @@ namespace m1
         void ShootOnLeftClick();
         void MoveBulletsInLine();
         void RenderGround();
+        void RenderSky();
+        void RenderBuildings();
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;
         m1::TankMovement* tankMovement;
         TankPosition tankPosition;
         m1::Ground* ground = nullptr;
+        m1::Sky* sky = nullptr;
+        m1::Building* building = nullptr;
         std::vector<m1::Tank*> enemyTanks;
         std::vector<m1::TankMovement*> enemyTankMovements;
         std::vector<TankPosition> enemyTankPositions;
@@ -90,6 +104,8 @@ namespace m1
         std::unordered_map<std::string, Mesh*> enemyTankObjects;
         std::unordered_map<std::string, Mesh*> projectileObjects;
         std::unordered_map<std::string, Mesh*> groundObjects;
+        std::unordered_map<std::string, Mesh*> buildingObjects;
+        std::unordered_map<std::string, Mesh*> skyObjects;
         glm::vec3 initialCameraPosition = glm::vec3(0, 0, 0);
         glm::vec3 lastTuretRotation = glm::vec3(0, 0, 0);
         float cameraSpeed = 200.0f;

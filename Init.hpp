@@ -11,7 +11,7 @@
 #include "TankMovement.hpp"
 #include "Building.hpp"
 #include "Sky.hpp"
-#define NUM_ENEMY_TANKS 3
+#define NUM_ENEMY_TANKS 4
 
 namespace m1 {
     class Bullet; // Forward declaration

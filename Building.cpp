@@ -87,6 +87,29 @@ void m1::Building::RenderBuilding(std::unordered_map<std::string, Shader*> shade
     firstIteration = false;
 }
 
+glm::vec3 m1::Building::FindRandomPositionOutsideOfBuilding()
+{
+    glm::vec3 position;
+    position.x = (float)(rand() % 15);
+    position.y = 0;
+    position.z = (float)(rand() % 15);
+
+    for (int i = 0; i < buildingPositions.size(); i++)
+    {
+		if (position.x >= buildingPositions[i].x - buildingRadiusPerType[buildingTypes[i]] &&
+			position.x <= buildingPositions[i].x + buildingRadiusPerType[buildingTypes[i]] &&
+			position.z >= buildingPositions[i].z - buildingRadiusPerType[buildingTypes[i]] &&
+			position.z <= buildingPositions[i].z + buildingRadiusPerType[buildingTypes[i]])
+		{
+            position.x = position.x + buildingRadiusPerType[buildingTypes[i]] + 1;
+			position.z = position.z + buildingRadiusPerType[buildingTypes[i]] + 1;
+            break;
+		}
+    }
+
+    return position;
+}
+
 std::vector <glm::vec3> m1::Building::GetBuildingPositions()
 {
 	return buildingPositions;

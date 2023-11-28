@@ -16,6 +16,7 @@ namespace m1
 		Building(std::unordered_map<std::string, Mesh*> buildingObjects);
 		~Building();
 		void RenderBuilding(std::unordered_map<std::string, Shader*> shaders);
+		glm::vec3 FindRandomPositionOutsideOfBuilding();
 		std::vector <glm::vec3> GetBuildingPositions();
 		std::vector <int> GetBuildingTypes();
 		std::vector <float> GetBuildingRadiusPerType();

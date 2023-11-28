@@ -172,7 +172,7 @@ bool m1::Tank::CheckTankBuildingCollision(
     {
         float buildingRadius = buildingBlock->GetBuildingRadiusPerType()[buildingBlock->GetBuildingTypes()[i]];
         float tankRadius = this->GetTankRadius();
-        float distanceBetweenTankAndBuilding = glm::distance(tankPosition, buildingBlock->GetBuildingPositions()[i]);
+        float distanceBetweenTankAndBuilding = glm::distance(tankPosition + this->initialPosition, buildingBlock->GetBuildingPositions()[i]);
 
         // If the distance between the tank and the building is less than the sum of their radiuses
         if (distanceBetweenTankAndBuilding < buildingRadius + tankRadius)

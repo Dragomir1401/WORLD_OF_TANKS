@@ -99,9 +99,7 @@ void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
     {
         for (int i = 0; i < NUM_ENEMY_TANKS; i++)
         {
-			glm::vec3 initialPosition = glm::vec3(0, 0, 0);
-            initialPosition.x = (float)(rand() % 15);
-			initialPosition.z = (float)(rand() % 15);
+            glm::vec3 initialPosition = building->FindRandomPositionOutsideOfBuilding();
 			Tank* enemyTank = new Tank(enemyTankObjects, initialPosition);
 			enemyTanks.push_back(enemyTank);
 

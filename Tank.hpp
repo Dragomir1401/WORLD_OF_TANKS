@@ -71,8 +71,9 @@ namespace m1
 			std::vector<TankMovement*> enemyTanksMovement,
 			glm::vec3 tankPosition);
 
-		int GetDamage() { return damage; }
-		void Damage() { damage++; }
+		float GetDamage() { return damage; }
+		void Damage() { damage += 1.2f; }
+		float GetMaxDamage() { return maxDamage; }
 
 	private:
 		std::unordered_map<std::string, Mesh*> tankObjects;
@@ -80,6 +81,7 @@ namespace m1
 		float wheelScale = 0.385f;
 		glm::vec3 initialPosition;
 		float tankRadius = 5.0f * 0.35f;
-		int damage = 0;
+		float damage = 0;
+		float maxDamage = 5.0f;
 	};
 } // namespace m1

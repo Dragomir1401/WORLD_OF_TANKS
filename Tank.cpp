@@ -24,7 +24,7 @@ glm::mat4 m1::Tank::RenderBody(
     modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
     modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
-    m1::InitTema2::RenderMesh(tankObjects["body"], shaders["ShaderTank"], modelMatrix);
+    m1::InitTema2::RenderMesh(tankObjects["body"], shaders["ShaderTank"], modelMatrix, damage);
 
     return modelMatrix;
 }

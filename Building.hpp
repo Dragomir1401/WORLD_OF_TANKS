@@ -20,11 +20,13 @@ namespace m1
 		std::vector <glm::vec3> GetBuildingPositions();
 		std::vector <int> GetBuildingTypes();
 		std::vector <float> GetBuildingRadiusPerType();
+		void DamageBuilding(int index);
 	private:
 		std::unordered_map<std::string, Mesh*> buildingObjects;
 		float buildingBaseHeight = 0.02f;
 		float buildingLength = 20.0f;
 		std::vector <glm::vec3> buildingPositions;
+		std::vector <float> damagePerPosition;
 		std::vector <int> buildingTypes;
 		std::vector <float> buildingRadiusPerType;
 		int groundBoxNumbers = NUM_PARCELS;

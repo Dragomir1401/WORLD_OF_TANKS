@@ -45,6 +45,7 @@ m1::Building::~Building()
 void m1::Building::RenderBuilding(std::unordered_map<std::string, Shader*> shaders)
 {
     int translationIndex = 0;
+    int realIndex = 0;
     for (int i = 0; i < NUM_PARCELS * 2; ++i)
     {
         for (int j = 0; j < NUM_PARCELS * 2; ++j)
@@ -77,11 +78,13 @@ void m1::Building::RenderBuilding(std::unordered_map<std::string, Shader*> shade
             if (firstIteration)
             {
                 buildingPositions.push_back(translations[translationIndex]);
+                damagePerPosition.push_back(0);
                 buildingTypes.push_back(resourcePerParcel[i][j]);
             }
 
-            m1::InitTema2::RenderMesh(buildingObjects[name], shaders["ShaderTank"], modelMatrix);
+            m1::InitTema2::RenderMesh(buildingObjects[name], shaders["ShaderTank"], modelMatrix, damagePerPosition[realIndex]);
             translationIndex++;
+            realIndex++;
         }
     }
     firstIteration = false;
@@ -139,4 +142,9 @@ std::vector <int> m1::Building::GetBuildingTypes()
 std::vector <float> m1::Building::GetBuildingRadiusPerType()
 {
 	return buildingRadiusPerType;
+}
+
+void m1::Building::DamageBuilding(int index)
+{
+	damagePerPosition[index] += 1.5f;
 }

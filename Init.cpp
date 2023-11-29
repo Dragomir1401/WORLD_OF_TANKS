@@ -97,7 +97,7 @@ void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
     }
     else
     {
-        for (int i = 0; i < NUM_ENEMY_TANKS; i++)
+        for (int i = 0; i < numberOfEnemyTanks; i++)
         {
             glm::vec3 initialPosition = building->FindRandomPositionOutsideOfBuilding();
 			Tank* enemyTank = new Tank(enemyTankObjects, initialPosition);
@@ -244,7 +244,7 @@ void m1::InitTema2::RenderTankEntity()
 
 void m1::InitTema2::RenderEnemyTankEntity()
 {
-    for (int i = 0; i < NUM_ENEMY_TANKS; i++)
+    for (int i = 0; i < enemyTanks.size(); i++)
     {
         // moving tank to
         enemyTankPositions[i].tankWorldMatrix = enemyTanks[i]->RenderBody(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate);
@@ -273,7 +273,7 @@ void m1::InitTema2::RenderMesh(
     Mesh* mesh, 
     Shader* shader,
     const glm::mat4& modelMatrix,
-    int damageGrade)
+    float damageGrade)
 {
     if (!mesh || !shader || !shader->program)
         return;
@@ -285,11 +285,16 @@ void m1::InitTema2::RenderMesh(
     glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
     // Set the damage intensity uniform
-    if (damageGrade)
+    if (damageGrade > 0)
     {
         GLint damageIntensityLoc = glGetUniformLocation(shader->program, "damageIntensity");
-        float damageIntensity = (float)damageGrade / 10.0f;
+        float damageIntensity = damageGrade / 10.0f;
         glUniform1f(damageIntensityLoc, damageIntensity);
+    }
+    else
+    {
+		GLint damageIntensityLoc = glGetUniformLocation(shader->program, "damageIntensity");
+		glUniform1f(damageIntensityLoc, 0.0f);
     }
 
     mesh->Render();
@@ -492,7 +497,7 @@ void InitTema2::DetectInput()
 
 void m1::InitTema2::UpdateBasedOnTankTankCollision()
 {
-    for (int i = 0; i < NUM_ENEMY_TANKS; i++)
+    for (int i = 0; i < enemyTanks.size(); i++)
 	{
 		if (tank->CheckTankTankCollision(enemyTanks[i], tankMovement->tankTranslate, enemyTankMovements[i]->tankTranslate))
 		{
@@ -521,6 +526,7 @@ bool m1::InitTema2::CheckBulletBuildingCollision(m1::Bullet* bullet)
 
         if (distanceBetweenTankAndBuilding < buildingRadius + bulletRadius)
 		{
+            building->DamageBuilding(i);
 			return true;
 		}
 	}
@@ -545,11 +551,55 @@ void m1::InitTema2::CheckAllBulletsBuildingCollisions()
 	}
 }
 
+bool m1::InitTema2::CheckBulletTankCollision(m1::Bullet* bullet)
+{
+    // For each enemy tank
+    for (int i = 0; i < enemyTanks.size(); i++)
+    {
+		float tankRadius = enemyTanks[i]->GetTankRadius();
+		float bulletRadius = bullet->GetBulletRadius();
+
+		float distanceBetweenTankAndBullet = glm::distance(bullet->GetBulletPosition(),
+            enemyTankMovements[i]->tankTranslate + enemyTanks[i]->GetInitialPosition());
+
+		if (distanceBetweenTankAndBullet < tankRadius + bulletRadius)
+		{
+            enemyTanks[i]->Damage();
+            if (enemyTanks[i]->GetDamage() > enemyTanks[i]->GetMaxDamage())
+            {
+				enemyTanks.erase(enemyTanks.begin() + i);
+				enemyTankMovements.erase(enemyTankMovements.begin() + i);
+				enemyTankPositions.erase(enemyTankPositions.begin() + i);
+            }
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void m1::InitTema2::CheckAllBulletsTankCollisions()
+{
+    // For each bullet
+	for (int i = 0; i < bullets.size(); i++)
+	{
+		if (CheckBulletTankCollision(bullets[i]))
+		{
+			Explosion* explosion = new Explosion(
+				explosionObjects,
+				bullets[i]->GetBulletPosition());
+			explosions.push_back(explosion);
+
+			bullets.erase(bullets.begin() + i);
+		}
+	}
+}
+
 void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {
     glm::vec3 myTankPosition = tankPosition.tankCurrentPosition;
     float moveSpeed = 0.7f;
 
-    for (int i = 0; i < NUM_ENEMY_TANKS; i++)
+    for (int i = 0; i < enemyTanks.size(); i++)
     {
         //enemyTankMovements[i]->UpdateMovementState(enemyTankPositions[i].tankCurrentPosition, myTankPosition);
 
@@ -629,6 +679,7 @@ void InitTema2::Update(float deltaTimeSeconds)
     MoveBulletsInLine();
 
     CheckAllBulletsBuildingCollisions();
+    CheckAllBulletsTankCollisions();
     RenderExplosions();
 
     currentTime += deltaTimeSeconds;

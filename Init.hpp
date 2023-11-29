@@ -61,7 +61,7 @@ namespace m1
             Mesh* mesh, 
             Shader* shader, 
             const glm::mat4& modelMatrix,
-            int damageGrade = 0);
+            float damageGrade = 0.0f);
         static glm::mat4 projectionMatrix;
         static Camera* camera;
 
@@ -101,6 +101,8 @@ namespace m1
         void UpdateBasedOnTankTankCollision();
         bool CheckBulletBuildingCollision(m1::Bullet* bullet);
         void CheckAllBulletsBuildingCollisions();
+        bool CheckBulletTankCollision(m1::Bullet* bullet);
+        void CheckAllBulletsTankCollisions();
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;
@@ -127,5 +129,6 @@ namespace m1
         float currentTime = 0;
         float lastTimeShot = 0;
         float fov = 60;
+        int numberOfEnemyTanks = NUM_ENEMY_TANKS;
     };
 }   // namespace m1

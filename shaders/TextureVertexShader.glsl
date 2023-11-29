@@ -1,7 +1,6 @@
 #version 330
 
 // Input
-// TODO(student): Get vertex attributes from each location
 layout(location = 0) in vec3 v_position;
 layout(location = 1) in vec3 v_normal;
 layout(location = 2) in vec2 v_texture_coord;
@@ -14,28 +13,34 @@ uniform mat4 View;
 uniform mat4 Projection;
 uniform float translateX;
 uniform float translateZ;
-
+uniform float damageIntensity;
 
 // Output
-// TODO(student): Output values to fragment shader
 out vec3 frag_normal;
 out vec3 frag_color;
 out vec2 tex_coord;
 
+float hash(vec3 p) // replace with a proper 3D noise function if available
+{
+    p = fract(p * 0.3183099 + vec3(1.0, 1.711, 2.303));
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
 
 void main()
 {
-    // Send output to fragment shader
+   // Send output to fragment shader
     frag_normal = v_normal;
     frag_color = v_color;
     tex_coord = v_texture_coord;
     
+    // Compute world position
+    vec4 worldPos = Model * vec4(v_position, 1.0f);
+
+    // Apply damage effect
+    float noise = hash(v_position * damageIntensity); // Noise based on vertex position
+    vec3 damagedPosition = worldPos.xyz + v_normal * noise * damageIntensity;
+
     // Compute gl_Position
-    vec3 relativeVec = vec3(translateX, 0.5f, translateZ) -  vec3( Model * vec4(v_position, 1.0f));
-    vec3 world_pos =  vec3 (Model * vec4(v_position, 1));
-    float newPosY =  world_pos.y -  length(relativeVec) * length(relativeVec) * 0.03;
-    vec3 newVec = vec3(world_pos.x, newPosY, world_pos.z);
-
-
-    gl_Position = Projection * View * vec4(world_pos, 1.0f);
+    gl_Position = Projection * View * vec4(damagedPosition, 1.0f);
 }

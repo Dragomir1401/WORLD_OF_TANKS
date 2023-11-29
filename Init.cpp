@@ -220,6 +220,19 @@ void m1::InitTema2::CreateBuildingEntity()
     building = new Building(buildingObjects);
 }
 
+void m1::InitTema2::CreateExplosionEntity()
+{
+    const string sourceObjDirExplosion = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "explosion");
+    for (int i = 1; i <= 20; i++)
+    {
+        string name = "explosion" + to_string(i);
+        string nameObj = "explosion" + to_string(i) + ".obj";
+        Mesh* mesh = new Mesh(name);
+        mesh->LoadMesh(sourceObjDirExplosion, nameObj);
+        explosionObjects[name] = mesh;
+    }
+}
+
 void m1::InitTema2::RenderTankEntity()
 {
     tankPosition.tankWorldMatrix = tank->RenderBody(shaders, tankMovement->tankTranslate, tankMovement->tankRotate);
@@ -242,7 +255,25 @@ void m1::InitTema2::RenderEnemyTankEntity()
 	}
 }
 
-void m1::InitTema2::RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix)
+void m1::InitTema2::RenderExplosions()
+{
+    // for every explosion
+    for (int i = 0; i < explosions.size(); i++)
+	{
+		// render the explosion
+        bool res = explosions[i]->RendExplosion(shaders);
+		if (res == false)
+		{
+			explosions.erase(explosions.begin() + i);
+		}
+	}
+}
+
+void m1::InitTema2::RenderMesh(
+    Mesh* mesh, 
+    Shader* shader,
+    const glm::mat4& modelMatrix,
+    int damageGrade)
 {
     if (!mesh || !shader || !shader->program)
         return;
@@ -252,6 +283,14 @@ void m1::InitTema2::RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& mode
     glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetViewMatrix()));
     glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
     glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    // Set the damage intensity uniform
+    if (damageGrade)
+    {
+        GLint damageIntensityLoc = glGetUniformLocation(shader->program, "damageIntensity");
+        float damageIntensity = (float)damageGrade / 10.0f;
+        glUniform1f(damageIntensityLoc, damageIntensity);
+    }
 
     mesh->Render();
 }
@@ -313,6 +352,7 @@ void InitTema2::Init()
     CreateTankEntity(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "tank", "myTank"), false);   
     CreateEmemyTankEntity();
     CreateProjectileEntity();
+    CreateExplosionEntity();
 
     {
         Shader *shader = new Shader("ShaderTank");
@@ -469,6 +509,42 @@ void m1::InitTema2::UpdateBasedOnTankTankCollision()
 	}
 }
 
+bool m1::InitTema2::CheckBulletBuildingCollision(m1::Bullet* bullet)
+{
+    // For each building
+    for (int i = 0; i < building->GetBuildingPositions().size(); i++)
+	{
+        float buildingRadius = building->GetBuildingRadiusPerType()[building->GetBuildingTypes()[i]];
+        float bulletRadius = bullet->GetBulletRadius();
+
+        float distanceBetweenTankAndBuilding = glm::distance(bullet->GetBulletPosition(), building->GetBuildingPositions()[i]);
+
+        if (distanceBetweenTankAndBuilding < buildingRadius + bulletRadius)
+		{
+			return true;
+		}
+	}
+
+    return false;
+}
+
+void m1::InitTema2::CheckAllBulletsBuildingCollisions()
+{
+    // For each bullet
+    for (int i = 0; i < bullets.size(); i++)
+	{
+		if (CheckBulletBuildingCollision(bullets[i]))
+		{
+            Explosion* explosion = new Explosion(
+                                    explosionObjects,
+                                    bullets[i]->GetBulletPosition());
+            explosions.push_back(explosion);
+
+			bullets.erase(bullets.begin() + i);
+		}
+	}
+}
+
 void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {
     glm::vec3 myTankPosition = tankPosition.tankCurrentPosition;
     float moveSpeed = 0.7f;
@@ -551,6 +627,9 @@ void InitTema2::Update(float deltaTimeSeconds)
 
     ShootOnLeftClick();
     MoveBulletsInLine();
+
+    CheckAllBulletsBuildingCollisions();
+    RenderExplosions();
 
     currentTime += deltaTimeSeconds;
 }

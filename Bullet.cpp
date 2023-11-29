@@ -57,7 +57,10 @@ bool m1::Bullet::RendBullet(float currentTime, std::unordered_map<std::string, S
 	modelMatrix = glm::rotate(modelMatrix, this->turretRelativeRotationWhenBulletWasShot.y, glm::vec3(0, 1, 0));
 	modelMatrix = glm::scale(modelMatrix, glm::vec3(this->bulletScale));
 
-	m1::InitTema2::RenderMesh(this->meshes["projectile" + std::to_string(this->animationIndex)], shaders["ShaderTank"], modelMatrix);
+	m1::InitTema2::RenderMesh(
+		this->meshes["projectile" + std::to_string(this->animationIndex)],
+		shaders["ShaderTank"],
+		modelMatrix);
 
 	if (currentTime - this->shootedTime > 7.0f)
 	{

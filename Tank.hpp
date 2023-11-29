@@ -71,11 +71,15 @@ namespace m1
 			std::vector<TankMovement*> enemyTanksMovement,
 			glm::vec3 tankPosition);
 
+		int GetDamage() { return damage; }
+		void Damage() { damage++; }
+
 	private:
 		std::unordered_map<std::string, Mesh*> tankObjects;
 		float tankScale = 0.35f;
 		float wheelScale = 0.385f;
 		glm::vec3 initialPosition;
 		float tankRadius = 5.0f * 0.35f;
+		int damage = 0;
 	};
 } // namespace m1

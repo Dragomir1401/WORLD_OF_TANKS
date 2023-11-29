@@ -11,6 +11,7 @@
 #include "TankMovement.hpp"
 #include "Building.hpp"
 #include "Sky.hpp"
+#include "Explosion.hpp"
 #define NUM_ENEMY_TANKS 4
 
 namespace m1 {
@@ -34,6 +35,9 @@ namespace m1 {
 namespace m1 {
 	class Sky; // Forward declaration
 }
+namespace m1 {
+	class Explosion; // Forward declaration
+}
 
 
 struct TankPosition
@@ -53,7 +57,11 @@ namespace m1
         ~InitTema2();
 
         void Init() override;
-        static void RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix);
+        static void RenderMesh(
+            Mesh* mesh, 
+            Shader* shader, 
+            const glm::mat4& modelMatrix,
+            int damageGrade = 0);
         static glm::mat4 projectionMatrix;
         static Camera* camera;
 
@@ -64,8 +72,10 @@ namespace m1
         void CreateGroundEntity();
         void CreateSkyEntity();
         void CreateBuildingEntity();
+        void CreateExplosionEntity();
         void RenderTankEntity();
         void RenderEnemyTankEntity();
+        void RenderExplosions();
         void FrameStart() override;
         void Update(float deltaTimeSeconds) override;
         void FrameEnd() override;
@@ -89,6 +99,8 @@ namespace m1
         void RenderSky();
         void RenderBuildings();
         void UpdateBasedOnTankTankCollision();
+        bool CheckBulletBuildingCollision(m1::Bullet* bullet);
+        void CheckAllBulletsBuildingCollisions();
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;
@@ -101,12 +113,14 @@ namespace m1
         std::vector<m1::TankMovement*> enemyTankMovements;
         std::vector<TankPosition> enemyTankPositions;
         std::vector<m1::Bullet*> bullets;
+        std::vector<m1::Explosion*> explosions;
         std::unordered_map<std::string, Mesh*> tankObjects;
         std::unordered_map<std::string, Mesh*> enemyTankObjects;
         std::unordered_map<std::string, Mesh*> projectileObjects;
         std::unordered_map<std::string, Mesh*> groundObjects;
         std::unordered_map<std::string, Mesh*> buildingObjects;
         std::unordered_map<std::string, Mesh*> skyObjects;
+        std::unordered_map<std::string, Mesh*> explosionObjects;
         glm::vec3 initialCameraPosition = glm::vec3(0, 0, 0);
         glm::vec3 lastTuretRotation = glm::vec3(0, 0, 0);
         float cameraSpeed = 200.0f;

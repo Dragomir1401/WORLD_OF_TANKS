@@ -25,6 +25,14 @@ namespace m1
 			float bulletScale = 0.3f);
 		~Bullet();
 		bool RendBullet(float currentTime, std::unordered_map<std::string, Shader*> shaders);
+		float GetBulletRadius()
+		{
+			return bulletRadius * bulletScale;
+		}
+		glm::vec3 GetBulletPosition()
+		{
+			return position;
+		}
 	private:
 		glm::vec3 position;
 		std::unordered_map<std::string, Mesh*> meshes;
@@ -40,5 +48,6 @@ namespace m1
 		bool timerExpired = false;
 		float shootedTime = 0;
 		float bulletSpeed = 0.35f;
+		float bulletRadius = 1.8f;
 	};
 } // namespace m1

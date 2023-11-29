@@ -246,11 +246,13 @@ void m1::InitTema2::RenderEnemyTankEntity()
 {
     for (int i = 0; i < enemyTanks.size(); i++)
     {
+        glm::vec3 turretDirection = ComputeEnemyTurretDirection(enemyTankMovements[i]->tankTranslate + enemyTanks[i]->GetInitialPosition(),
+                                                                tankMovement->tankTranslate + enemyTanks[i]->GetInitialPosition());
         // moving tank to
         enemyTankPositions[i].tankWorldMatrix = enemyTanks[i]->RenderBody(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate);
         enemyTankPositions[i].tankCurrentPosition = enemyTankPositions[i].tankWorldMatrix[3];
-        enemyTankPositions[i].turretOrientation = enemyTanks[i]->RenderTurret(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, ComputeRotationBasedOnMouse());
-        enemyTanks[i]->RenderTun(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, ComputeRotationBasedOnMouse());
+        enemyTankPositions[i].turretOrientation = enemyTanks[i]->RenderTurret(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, turretDirection);
+        enemyTanks[i]->RenderTun(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, turretDirection);
         enemyTanks[i]->RenderWheels(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, enemyTankMovements[i]->wheelTilt, enemyTankMovements[i]->animationIndex);
 	}
 }
@@ -594,6 +596,27 @@ void m1::InitTema2::CheckAllBulletsTankCollisions()
 		}
 	}
 }
+
+glm::vec3 m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
+    // Compute the direction vector from enemy to player
+    glm::vec3 direction = playerTankPosition - enemyTankPosition;
+
+    // Normalize the direction vector to get a unit vector
+    direction = glm::normalize(direction);
+
+    // Calculate the rotation angle around the Y-axis to face the player tank
+    float rotationAngle = atan2(-direction.z, direction.x);
+
+    // Convert rotation angle to degrees if necessary (assuming your engine uses degrees)
+    rotationAngle = glm::degrees(rotationAngle);
+
+    // Normalize angle to [0, 360) range or whatever range your game engine uses
+    rotationAngle = fmod(rotationAngle + 360.0f, 360.0f);
+
+    return glm::vec3(0.0f, rotationAngle, 0.0f); // Assuming rotation is around the Y axis
+}
+
+
 
 void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {
     glm::vec3 myTankPosition = tankPosition.tankCurrentPosition;

@@ -103,6 +103,7 @@ namespace m1
         void CheckAllBulletsBuildingCollisions();
         bool CheckBulletTankCollision(m1::Bullet* bullet);
         void CheckAllBulletsTankCollisions();
+        glm::vec3 ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition);
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;

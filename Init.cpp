@@ -369,9 +369,11 @@ void InitTema2::UpdateAnimationTrackers(bool &animationIncreaser, TankMovement* 
 void InitTema2::DetectInput()
 {
     glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(tankMovement->tankRotate.y), 0, -sin(tankMovement->tankRotate.y)));
-    float moveSpeed = 0.007f;
-    float moveSpeedFast = 0.030f;
-    float moveSpeedSlow = 0.005f;
+    float moveSpeed = 0.09f;
+    float moveSpeedFast = 0.20f;
+    float moveSpeedSlow = 0.05f;
+    float moveSpeedTurn = 0.01f;
+
     tankMovement->wheelTilt.y = 0;
 
     if (window->KeyHold(GLFW_KEY_W))
@@ -423,18 +425,18 @@ void InitTema2::DetectInput()
 
     if (window->KeyHold(GLFW_KEY_A))
     {
-        tankMovement->tankRotate.y += moveSpeedSlow;
+        tankMovement->tankRotate.y += moveSpeedTurn;
         tankMovement->wheelTilt.y = 0.3f;
         tankMovement->animationSkipper++;
-        camera->RotateThirdPerson_OY(moveSpeedSlow, tankMovement->tankTranslate);
+        camera->RotateThirdPerson_OY(moveSpeedTurn, tankMovement->tankTranslate);
     }
 
     if (window->KeyHold(GLFW_KEY_D))
     {
-        tankMovement->tankRotate.y -= moveSpeedSlow;
+        tankMovement->tankRotate.y -= moveSpeedTurn;
         tankMovement->wheelTilt.y = -0.3f;
         tankMovement->animationSkipper++;
-        camera->RotateThirdPerson_OY(-moveSpeedSlow, tankMovement->tankTranslate);
+        camera->RotateThirdPerson_OY(-moveSpeedTurn, tankMovement->tankTranslate);
     }
     UpdateAnimationTrackers(tankMovement->animationIncreaser, tankMovement);
 }

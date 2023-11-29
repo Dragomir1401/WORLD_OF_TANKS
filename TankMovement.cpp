@@ -128,7 +128,6 @@ void m1::TankMovement::IdleMove(float currentTime, m1::Tank* tank, m1::Building*
 		this->tankTranslate += moveSpeed * forwardDir;
 		if (tank->CheckTankBuildingCollision(building, this->tankTranslate))
 		{
-			std::cout << "Tank is colliding " << std::endl;
 			this->animationSkipper -= 2;
 			this->tankTranslate -= moveSpeed * forwardDir;
 		}
@@ -145,7 +144,6 @@ void m1::TankMovement::IdleMove(float currentTime, m1::Tank* tank, m1::Building*
 		this->tankTranslate += moveSpeedFast * forwardDir;
 		if (tank->CheckTankBuildingCollision(building, this->tankTranslate))
 		{
-			std::cout << "Tank is colliding " << std::endl;
 			this->animationSkipper -= 8;
 			this->tankTranslate -= moveSpeedFast * forwardDir;
 		}
@@ -163,7 +161,6 @@ void m1::TankMovement::IdleMove(float currentTime, m1::Tank* tank, m1::Building*
 		this->animationIncreaser = true;
 		if (tank->CheckTankBuildingCollision(building, this->tankTranslate))
 		{
-			std::cout << "Tank is colliding " << std::endl;
 			this->tankTranslate -= moveSpeedSlow * -forwardDir;
 			this->animationSkipper--;
 			this->animationIncreaser = false;

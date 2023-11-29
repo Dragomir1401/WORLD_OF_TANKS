@@ -29,7 +29,6 @@ glm::mat4 m1::Tank::RenderBody(
     return modelMatrix;
 }
 
-
 m1::TurretOrientation m1::Tank::RenderTurret(
     std::unordered_map<std::string, Shader*> shaders,
     glm::vec3 tankTranslate,
@@ -182,3 +181,20 @@ bool m1::Tank::CheckTankBuildingCollision(
     }
     return false;
 }
+
+
+bool m1::Tank::CheckTankTankCollision(Tank* tank, glm::vec3 myTankPosition, glm::vec3 otherTankPosition)
+{
+    float myTankRadius = this->GetTankRadius();
+    float otherTankRadius = tank->GetTankRadius();
+    float distanceBetweenTanks = glm::distance(myTankPosition + this->initialPosition, otherTankPosition + tank->GetInitialPosition());
+
+    // If the distance between the tank and the building is less than the sum of their radiuses
+    if (distanceBetweenTanks < myTankRadius + otherTankRadius)
+    {
+		return true;
+	}
+
+    return false;
+}
+

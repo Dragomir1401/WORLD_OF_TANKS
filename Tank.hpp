@@ -57,6 +57,11 @@ namespace m1
 			Building* buildingBlock,
 			glm::vec3 tankPosition);
 
+		bool CheckTankTankCollision(
+			Tank* tank,
+			glm::vec3 tankPosition,
+			glm::vec3 otherTankPosition);
+
 	private:
 		std::unordered_map<std::string, Mesh*> tankObjects;
 		float tankScale = 0.35f;

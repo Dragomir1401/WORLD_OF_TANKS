@@ -82,6 +82,6 @@ namespace m1
 		glm::vec3 initialPosition;
 		float tankRadius = 5.0f * 0.35f;
 		float damage = 0;
-		float maxDamage = 5.0f;
+		float maxDamage = 9.0f;
 	};
 } // namespace m1

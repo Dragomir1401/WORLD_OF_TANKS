@@ -101,8 +101,24 @@ glm::vec3 m1::Building::FindRandomPositionOutsideOfBuilding()
 			position.z >= buildingPositions[i].z - buildingRadiusPerType[buildingTypes[i]] &&
 			position.z <= buildingPositions[i].z + buildingRadiusPerType[buildingTypes[i]])
 		{
-            position.x = position.x + buildingRadiusPerType[buildingTypes[i]] + 1;
-			position.z = position.z + buildingRadiusPerType[buildingTypes[i]] + 1;
+            if (position.x <= buildingPositions[i].x)
+			{
+                position.x -= buildingRadiusPerType[buildingTypes[i]] - 1;
+			}
+			else
+			{
+                position.x += buildingRadiusPerType[buildingTypes[i]] + 1;
+			}
+
+            if (position.z <= buildingPositions[i].z)
+			{
+                position.z -= buildingRadiusPerType[buildingTypes[i]] - 1;
+			}
+            else
+            {
+                position.z += buildingRadiusPerType[buildingTypes[i]] + 1;
+            }
+
             break;
 		}
     }

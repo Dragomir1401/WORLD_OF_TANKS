@@ -7,12 +7,16 @@
 #include "lab_camera.hpp"
 #include "TurretOrientation.hpp"
 #include "Init.hpp"
+#include "TankMovement.hpp"
 
 namespace m1 {
 	class Tank; // Forward declaration
 }
 namespace m1 {
 	class Building; // Forward declaration
+}
+namespace m1 {
+	class TankMovement; // Forward declaration
 }
 
 namespace m1
@@ -58,9 +62,14 @@ namespace m1
 			glm::vec3 tankPosition);
 
 		bool CheckTankTankCollision(
-			Tank* tank,
+			Tank* otherTank,
 			glm::vec3 tankPosition,
 			glm::vec3 otherTankPosition);
+
+		bool CheckTankEnemyTanksCollision(
+			std::vector<Tank*> enemyTanks,
+			std::vector<TankMovement*> enemyTanksMovement,
+			glm::vec3 tankPosition);
 
 	private:
 		std::unordered_map<std::string, Mesh*> tankObjects;

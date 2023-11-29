@@ -34,6 +34,16 @@ namespace m1
             this->up = glm::cross(right, forward);
         }
 
+        glm::vec3 GetPosition() const
+		{
+			return position;
+		}
+
+        void SetPosition(const glm::vec3& position)
+        {
+            this->position = position;
+        }
+
         void MoveForward(float distance)
         {
             glm::vec3 dir = glm::normalize(glm::vec3(forward.x, 0, forward.z));

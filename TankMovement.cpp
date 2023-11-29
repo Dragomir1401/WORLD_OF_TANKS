@@ -117,9 +117,10 @@ void m1::TankMovement::IdleMove(float currentTime, m1::Tank* tank, m1::Building*
 {
 	glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(this->tankRotate.y), 0, -sin(this->tankRotate.y)));
 
-	float moveSpeed = 0.007f;
-	float moveSpeedFast = 0.030f;
-	float moveSpeedSlow = 0.005f;
+	float moveSpeed = 0.09f;
+	float moveSpeedFast = 0.13f;
+	float moveSpeedSlow = 0.05f;
+	float moveSpeedTurn = 0.01f;
 	this->wheelTilt.y = 0;
 
 	if (randomNumber >= 0 && randomNumber < 50 && currentTime - lastCommandTimer < 3.0f)
@@ -174,7 +175,7 @@ void m1::TankMovement::IdleMove(float currentTime, m1::Tank* tank, m1::Building*
 
 	if (randomNumber >= 70 && randomNumber < 85 && currentTime - lastCommandTimer < 3.0f)
 	{
-		this->tankRotate.y += moveSpeedSlow;
+		this->tankRotate.y += moveSpeedTurn;
 		this->wheelTilt.y = 0.3f;
 		this->animationSkipper++;
 	}
@@ -186,7 +187,7 @@ void m1::TankMovement::IdleMove(float currentTime, m1::Tank* tank, m1::Building*
 
 	if (randomNumber >= 85 && randomNumber < 100 && currentTime - lastCommandTimer < 3.0f)
 	{
-		this->tankRotate.y -= moveSpeedSlow;
+		this->tankRotate.y -= moveSpeedTurn;
 		this->wheelTilt.y = -0.3f;
 		this->animationSkipper++;
 	}

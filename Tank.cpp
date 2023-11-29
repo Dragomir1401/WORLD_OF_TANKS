@@ -183,11 +183,14 @@ bool m1::Tank::CheckTankBuildingCollision(
 }
 
 
-bool m1::Tank::CheckTankTankCollision(Tank* tank, glm::vec3 myTankPosition, glm::vec3 otherTankPosition)
+bool m1::Tank::CheckTankTankCollision(
+    Tank* otherTank,
+    glm::vec3 myTankPosition,
+    glm::vec3 otherTankPosition)
 {
     float myTankRadius = this->GetTankRadius();
-    float otherTankRadius = tank->GetTankRadius();
-    float distanceBetweenTanks = glm::distance(myTankPosition + this->initialPosition, otherTankPosition + tank->GetInitialPosition());
+    float otherTankRadius = otherTank->GetTankRadius();
+    float distanceBetweenTanks = glm::distance(myTankPosition + this->initialPosition, otherTankPosition + otherTank->GetInitialPosition());
 
     // If the distance between the tank and the building is less than the sum of their radiuses
     if (distanceBetweenTanks < myTankRadius + otherTankRadius)
@@ -196,5 +199,22 @@ bool m1::Tank::CheckTankTankCollision(Tank* tank, glm::vec3 myTankPosition, glm:
 	}
 
     return false;
+}
+
+bool m1::Tank::CheckTankEnemyTanksCollision(
+    std::vector<Tank*> enemyTanks,
+    std::vector<TankMovement*> enemyTanksMovement,
+    glm::vec3 tankPosition)
+{
+    // for every enemy tank check if the distance between the tanks is less than the sum of their radiuses
+    for (int i = 0; i < enemyTanks.size(); i++)
+	{
+		if (this->CheckTankTankCollision(enemyTanks[i], tankPosition, enemyTanksMovement[i]->tankTranslate))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 

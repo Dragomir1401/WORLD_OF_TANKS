@@ -372,7 +372,7 @@ void InitTema2::DetectInput()
     float moveSpeed = 0.09f;
     float moveSpeedFast = 0.20f;
     float moveSpeedSlow = 0.05f;
-    float moveSpeedTurn = 0.01f;
+    float moveSpeedTurn = 0.03f;
 
     tankMovement->wheelTilt.y = 0;
 
@@ -382,7 +382,10 @@ void InitTema2::DetectInput()
         tankMovement->tankTranslate += moveSpeed * forwardDir;
         if (!tank->CheckTankBuildingCollision(building, tankMovement->tankTranslate))
         {
-			camera->MoveForward(moveSpeed);
+            if (!tank->CheckTankEnemyTanksCollision(enemyTanks, enemyTankMovements, tankMovement->tankTranslate))
+            {
+			    camera->MoveForward(moveSpeed);
+            }
 		}
         else
         {
@@ -397,7 +400,10 @@ void InitTema2::DetectInput()
         tankMovement->tankTranslate += moveSpeedFast * forwardDir;
         if (!tank->CheckTankBuildingCollision(building, tankMovement->tankTranslate))
         {
-            camera->MoveForward(moveSpeedFast);
+            if (!tank->CheckTankEnemyTanksCollision(enemyTanks, enemyTankMovements, tankMovement->tankTranslate))
+            {
+                camera->MoveForward(moveSpeedFast);
+            }
         }
         else
         {
@@ -413,7 +419,10 @@ void InitTema2::DetectInput()
         tankMovement->animationIncreaser = true;
         if (!tank->CheckTankBuildingCollision(building, tankMovement->tankTranslate))
         {
-			camera->MoveForward(-moveSpeedSlow);
+            if (!tank->CheckTankEnemyTanksCollision(enemyTanks, enemyTankMovements, tankMovement->tankTranslate))
+            {
+                camera->MoveForward(-moveSpeedSlow);
+            }
 		}
         else
         {
@@ -439,6 +448,25 @@ void InitTema2::DetectInput()
         camera->RotateThirdPerson_OY(-moveSpeedTurn, tankMovement->tankTranslate);
     }
     UpdateAnimationTrackers(tankMovement->animationIncreaser, tankMovement);
+}
+
+void m1::InitTema2::UpdateBasedOnTankTankCollision()
+{
+    for (int i = 0; i < NUM_ENEMY_TANKS; i++)
+	{
+		if (tank->CheckTankTankCollision(enemyTanks[i], tankMovement->tankTranslate, enemyTankMovements[i]->tankTranslate))
+		{
+			glm::vec3 diff = tankMovement->tankTranslate - enemyTankMovements[i]->tankTranslate;
+            float distance = glm::distance(tankMovement->tankTranslate, enemyTankMovements[i]->tankTranslate);
+            float PF = tank->GetTankRadius() + enemyTanks[i]->GetTankRadius() - distance;
+            glm::vec3 P = PF * glm::normalize(diff);
+            glm::vec3 displacement = P * -0.5f;
+            tankMovement->tankTranslate += P * -0.5f;
+            enemyTankMovements[i]->tankTranslate += P * 0.5f;
+
+            camera->SetPosition(camera->GetPosition() + displacement);
+		}
+	}
 }
 
 void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {
@@ -515,9 +543,10 @@ void InitTema2::Update(float deltaTimeSeconds)
     RenderSky();
 
     RandomizeEnemyTankMovement(deltaTimeSeconds);
-    RenderEnemyTankEntity();
-
     DetectInput();
+    UpdateBasedOnTankTankCollision();
+
+    RenderEnemyTankEntity();
     RenderTankEntity();
 
     ShootOnLeftClick();

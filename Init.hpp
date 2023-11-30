@@ -66,7 +66,9 @@ namespace m1
         static Camera* camera;
 
      private:
-        void CreateTankEntity(std::string sourceObjDirTank, bool isEnemy);
+        void CreateTankEntity(
+            std::string sourceObjDirTank,
+            bool isEnemy);
         void CreateEmemyTankEntity();
         void CreateProjectileEntity();
         void CreateGroundEntity();
@@ -88,23 +90,37 @@ namespace m1
         void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
-        void UpdateAnimationTrackers(bool& animationIncreaser, m1::TankMovement* tankMovement);
+        void UpdateAnimationTrackers(
+            bool& animationIncreaser,
+            m1::TankMovement* tankMovement);
         void DetectInput();
-        void RandomizeEnemyTankMovement(float deltaTime);
+        void RandomizeEnemyTankMovement(
+            float deltaTime);
         glm::vec3 ComputeRotationBasedOnMouse();
-        void PositionCameraThirdPerson(int deltaX, int deltaY);
+        void PositionCameraThirdPerson(
+            int deltaX, 
+            int deltaY);
         void ShootOnLeftClick();
         void MoveBulletsInLine();
         void RenderGround();
         void RenderSky();
         void RenderBuildings();
-        void UpdateBasedOnTankTankCollision(Tank* tank, TankMovement* tankMovement, int tankId);
-        void UpdateBasedOnTankBuildingCollision(Tank* tank, TankMovement* tankMovement);
-        bool CheckBulletBuildingCollision(m1::Bullet* bullet);
+        void UpdateBasedOnTankTankCollision(
+            Tank* tank, 
+            TankMovement* tankMovement, 
+            int tankId);
+        void UpdateBasedOnTankBuildingCollision(
+            Tank* tank, 
+            TankMovement* tankMovement);
+        bool CheckBulletBuildingCollision(
+            m1::Bullet* bullet);
         void CheckAllBulletsBuildingCollisions();
-        bool CheckBulletTankCollision(m1::Bullet* bullet);
+        bool CheckBulletTankCollision(
+            m1::Bullet* bullet);
         void CheckAllBulletsTankCollisions();
-        glm::vec3 ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition);
+        float ComputeEnemyTurretDirection(
+            glm::vec3 enemyTankPosition,
+            glm::vec3 playerTankPosition);
         void PositionCameraBehindTank();
         
         float elapsedTime = 0;

@@ -242,16 +242,29 @@ void m1::InitTema2::RenderTankEntity()
     tank->RenderWheels(shaders, tankMovement->tankTranslate, tankMovement->tankRotate, tankMovement->wheelTilt, tankMovement->animationIndex);
 }
 
+float NormalizeAngle(float angle) {
+    angle = fmod(angle, 2 * M_PI); // Normalize to [0, 2π) or [-π, π), as per your requirement
+    if (angle < 0) {
+        angle += 2 * M_PI;
+    }
+    return angle;
+}
+
 void m1::InitTema2::RenderEnemyTankEntity()
 {
     for (int i = 0; i < enemyTanks.size(); i++)
     {
-        glm::vec3 turretDirection = ComputeEnemyTurretDirection(enemyTankPositions[i].tankCurrentPosition,
-                                                                tankPosition.tankCurrentPosition);
+        float worldTurretRotation = ComputeEnemyTurretDirection(enemyTankMovements[i]->tankTranslate + enemyTanks[i]->GetInitialPosition(),
+                                                                  tankMovement->tankTranslate + tank->GetInitialPosition());      
 
-        // print positions
-        cout << "enemy tank " << i << " position: " << enemyTankPositions[i].tankCurrentPosition.x << " " << enemyTankPositions[i].tankCurrentPosition.y << " " << enemyTankPositions[i].tankCurrentPosition.z << endl;
-        cout << "my tank position: " << tankPosition.tankCurrentPosition.x << " " << tankPosition.tankCurrentPosition.y << " " << tankPosition.tankCurrentPosition.z << endl;
+        // Convert world rotation to tank-relative rotation
+        float tankBodyRotationY = enemyTankMovements[i]->tankRotate.y;
+        float turretRelativeRotationY = worldTurretRotation - tankBodyRotationY;
+
+        // Normalize the turret rotation angle
+        turretRelativeRotationY = NormalizeAngle(turretRelativeRotationY);
+
+        glm::vec3 turretDirection = glm::vec3(0, turretRelativeRotationY, 0);
         // moving tank to
         enemyTankPositions[i].tankWorldMatrix = enemyTanks[i]->RenderBody(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate);
         enemyTankPositions[i].tankCurrentPosition = enemyTankPositions[i].tankWorldMatrix[3];
@@ -598,34 +611,41 @@ void m1::InitTema2::CheckAllBulletsTankCollisions()
 	}
 }
 
-//glm::vec3 m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
+//float m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
 //    const glm::vec3 vectorToPlayer = normalize(enemyTankPosition - playerTankPosition);
-//    const float newRotation = -DEGREES((vectorToPlayer.z > 0.0f) ? M_PI - asin(vectorToPlayer.x) : asin(vectorToPlayer.x));
+//    float newRotation = -DEGREES((vectorToPlayer.z > 0.0f) ? M_PI - asin(vectorToPlayer.x) : asin(vectorToPlayer.x));
 //
-//    glm::vec3 rotation;
-//    rotation.y = newRotation;
-//    rotation.x = 0;
-//    rotation.z = 0;
-//
-//    return rotation;
+//    return newRotation;
 //}
 
-glm::vec3 m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
-    glm::vec3 direction = playerTankPosition - enemyTankPosition;
-    direction = glm::normalize(direction);
+//float m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
+//    const glm::vec3 vectorToPlayer = normalize(playerTankPosition - enemyTankPosition);
+//    float newRotation = atan2(vectorToPlayer.x, vectorToPlayer.z);
+//    return newRotation; // Make sure this is in the correct format (radians or degrees) as expected by your engine
+//}
 
-    glm::vec3 turretRotation = glm::vec3(0, 0, 0);
-
-    // Compute rotation around Y-axis to face the player tank
-    float rotationAngle = atan2(direction.x, direction.z);
-    turretRotation.y = rotationAngle;
-
-    // Assuming no rotation around X and Z axes
-    turretRotation.x = 0;
-    turretRotation.z = 0;
-
-    return turretRotation;
+float m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
+    glm::vec3 vectorToPlayer = normalize(playerTankPosition - enemyTankPosition);
+    float newRotation = atan2(vectorToPlayer.x, vectorToPlayer.z);
+    return newRotation; // Ensure this is in radians or degrees as needed
 }
+
+//glm::vec3 m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
+//    glm::vec3 direction = playerTankPosition - enemyTankPosition;
+//    direction = glm::normalize(direction);
+//
+//    glm::vec3 turretRotation = glm::vec3(0, 0, 0);
+//
+//    // Compute rotation around Y-axis to face the player tank
+//    float rotationAngle = atan2(direction.x, direction.z);
+//    turretRotation.y = rotationAngle;
+//
+//    // Assuming no rotation around X and Z axes
+//    turretRotation.x = 0;
+//    turretRotation.z = 0;
+//
+//    return turretRotation;
+//}
 
 
 void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {

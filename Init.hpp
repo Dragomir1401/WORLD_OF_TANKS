@@ -12,7 +12,7 @@
 #include "Building.hpp"
 #include "Sky.hpp"
 #include "Explosion.hpp"
-#define NUM_ENEMY_TANKS 4
+#define NUM_ENEMY_TANKS 5
 
 namespace m1 {
     class Bullet; // Forward declaration
@@ -98,7 +98,8 @@ namespace m1
         void RenderGround();
         void RenderSky();
         void RenderBuildings();
-        void UpdateBasedOnTankTankCollision();
+        void UpdateBasedOnTankTankCollision(Tank* tank, TankMovement* tankMovement, int tankId);
+        void UpdateBasedOnTankBuildingCollision(Tank* tank, TankMovement* tankMovement);
         bool CheckBulletBuildingCollision(m1::Bullet* bullet);
         void CheckAllBulletsBuildingCollisions();
         bool CheckBulletTankCollision(m1::Bullet* bullet);

@@ -127,11 +127,6 @@ void m1::TankMovement::IdleMove(float currentTime, m1::Tank* tank, m1::Building*
 	{
 		this->animationSkipper += 2;
 		this->tankTranslate += moveSpeed * forwardDir;
-		if (tank->CheckTankBuildingCollision(building, this->tankTranslate))
-		{
-			this->animationSkipper -= 2;
-			this->tankTranslate -= moveSpeed * forwardDir;
-		}
 	}
 	else if (randomNumber >= 0 && randomNumber < 50)
 	{
@@ -143,11 +138,6 @@ void m1::TankMovement::IdleMove(float currentTime, m1::Tank* tank, m1::Building*
 	{
 		this->animationSkipper += 8;
 		this->tankTranslate += moveSpeedFast * forwardDir;
-		if (tank->CheckTankBuildingCollision(building, this->tankTranslate))
-		{
-			this->animationSkipper -= 8;
-			this->tankTranslate -= moveSpeedFast * forwardDir;
-		}
 	}
 	else if (randomNumber >= 50 && randomNumber < 60)
 	{
@@ -160,12 +150,6 @@ void m1::TankMovement::IdleMove(float currentTime, m1::Tank* tank, m1::Building*
 		this->tankTranslate += moveSpeedSlow * -forwardDir;
 		this->animationSkipper++;
 		this->animationIncreaser = true;
-		if (tank->CheckTankBuildingCollision(building, this->tankTranslate))
-		{
-			this->tankTranslate -= moveSpeedSlow * -forwardDir;
-			this->animationSkipper--;
-			this->animationIncreaser = false;
-		}
 	}
 	else if (randomNumber >= 60 && randomNumber < 70)
 	{

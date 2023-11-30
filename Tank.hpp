@@ -61,6 +61,11 @@ namespace m1
 			Building* buildingBlock,
 			glm::vec3 tankPosition);
 
+		bool CheckTankIndividualBuildingCollision(
+			m1::Building* buildingBlock, 
+			glm::vec3 tankPosition,
+			int buildingIndex);
+
 		bool CheckTankTankCollision(
 			Tank* otherTank,
 			glm::vec3 tankPosition,

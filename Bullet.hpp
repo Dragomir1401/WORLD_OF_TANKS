@@ -48,6 +48,6 @@ namespace m1
 		bool timerExpired = false;
 		float shootedTime = 0;
 		float bulletSpeed = 0.35f;
-		float bulletRadius = 1.8f;
+		float bulletRadius = 1.25f;
 	};
 } // namespace m1

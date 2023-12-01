@@ -236,6 +236,33 @@ void m1::InitTema2::CreateExplosionEntity()
     }
 }
 
+void m1::InitTema2::LoadSounds()
+{
+    const string sourceObjDirSounds = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "sounds");
+    {
+		Audio* audio = new Audio(sourceObjDirSounds + "/music.wav", MUSIC);
+        sounds.push_back(audio);
+
+        audio = new Audio(sourceObjDirSounds + "/engineIdle.wav", ENGINE_IDLE);
+        sounds.push_back(audio);
+
+        audio = new Audio(sourceObjDirSounds + "/engineWorking.wav", ENGINE_WORKING);
+        sounds.push_back(audio);
+
+        audio = new Audio(sourceObjDirSounds + "/shoot.wav", SHOOT);
+        sounds.push_back(audio);
+
+        audio = new Audio(sourceObjDirSounds + "/explosionCloseRange.wav", EXPLOSION_CLOSE);
+        sounds.push_back(audio);
+
+        audio = new Audio(sourceObjDirSounds + "/explosionMidRange.wav", EXPLOSION_MID);
+        sounds.push_back(audio);
+
+        audio = new Audio(sourceObjDirSounds + "/explosionLongRange.wav", EXPLOSION_FAR);
+        sounds.push_back(audio);
+	}
+}
+
 void m1::InitTema2::RenderTankEntity(bool minimap)
 {
     tankPosition.tankWorldMatrix = tank->RenderBody(
@@ -334,7 +361,32 @@ void m1::InitTema2::RenderExplosions(bool minimap)
 		if (res == false)
 		{
 			explosions.erase(explosions.begin() + i);
+            firstExplisonFrames.erase(firstExplisonFrames.begin() + i);
 		}
+        else if (firstExplisonFrames[i])
+        {
+            // Compute distance between my tank and explosion
+            float distance = glm::distance(tankMovement->tankTranslate + tank->GetInitialPosition(), explosions[i]->GetPosition());
+
+            // Play the explosion sound based on the distance
+            if (distance < 10)
+            {
+                sounds.at(EXPLOSION_CLOSE)->Kill();
+                sounds.at(EXPLOSION_CLOSE)->Play();
+            }
+            else if (distance < 20)
+            {
+                sounds.at(EXPLOSION_MID)->Kill();
+                sounds.at(EXPLOSION_MID)->Play();
+            }
+            else
+            {
+                sounds.at(EXPLOSION_FAR)->Kill();
+                sounds.at(EXPLOSION_FAR)->Play();
+            }
+
+            firstExplisonFrames[i] = false;
+        }
 	}
 }
 
@@ -424,6 +476,9 @@ void m1::InitTema2::ShootOnLeftClick()
 
         bullets.push_back(bullet);
         lastTimeShot = currentTime;
+
+        sounds.at(SHOOT)->Kill();
+        sounds.at(SHOOT)->Play();
     }
 }
 
@@ -470,6 +525,9 @@ void m1::InitTema2::RenderBuildings(bool minimap)
 
 void InitTema2::Init()
 {
+    LoadSounds();
+    sounds.at(MUSIC)->Play();
+    sounds.at(ENGINE_IDLE)->Play();
     CreateGroundEntity();
     CreateBuildingEntity();
     CreateSkyEntity();
@@ -560,6 +618,13 @@ void InitTema2::DetectInput()
         tankMovement->animationSkipper += 2;
         tankMovement->tankTranslate += moveSpeed * forwardDir;
         PositionCameraBehindTank();
+
+        if (currentTime > lastTimeEngineWorking + 3.0f)
+        {
+            sounds.at(ENGINE_WORKING)->Kill();
+			sounds.at(ENGINE_WORKING)->Play();
+			lastTimeEngineWorking = currentTime;
+		}
     }
 
     if (window->KeyHold(GLFW_KEY_R))
@@ -567,6 +632,13 @@ void InitTema2::DetectInput()
         tankMovement->animationSkipper += 8;
         tankMovement->tankTranslate += moveSpeedFast * forwardDir;
         PositionCameraBehindTank();
+
+        if (currentTime > lastTimeEngineWorking + 3.0f)
+        {
+            sounds.at(ENGINE_WORKING)->Kill();
+            sounds.at(ENGINE_WORKING)->Play();
+            lastTimeEngineWorking = currentTime;
+        }
     }
 
     if (window->KeyHold(GLFW_KEY_S))
@@ -665,6 +737,7 @@ void m1::InitTema2::CheckAllBulletsBuildingCollisions()
                                     explosionObjects,
                                     bullets[i]->GetBulletPosition());
             explosions.push_back(explosion);
+            firstExplisonFrames.push_back(true);
 
 			bullets.erase(bullets.begin() + i);
 		}
@@ -709,6 +782,7 @@ void m1::InitTema2::CheckAllBulletsTankCollisions()
 				explosionObjects,
 				bullets[i]->GetBulletPosition());
 			explosions.push_back(explosion);
+            firstExplisonFrames.push_back(true);
 
 			bullets.erase(bullets.begin() + i);
 		}
@@ -819,8 +893,29 @@ void m1::InitTema2::PositionCameraThirdPerson(int deltaX, int deltaY)
     camera->RotateThirdPerson_OY(-sensivityOY * deltaX);
 }
 
+void InitTema2::LoopMusic()
+{
+    if (currentTime - lastTimeMusic > 120.0f)
+    {
+        sounds[MUSIC]->Kill();
+		sounds[MUSIC]->Play();
+		lastTimeMusic = currentTime;
+	}
+}
+
+void InitTema2::LoopIdle() {
+    if (currentTime - lastTimeEngineIdle > 9.0f)
+    {
+        sounds[ENGINE_IDLE]->Kill();
+        sounds[ENGINE_IDLE]->Play();
+        lastTimeEngineIdle = currentTime;
+    }
+}
+
 void InitTema2::Update(float deltaTimeSeconds)
 {
+    LoopMusic();
+    LoopIdle();
     RenderGround();
     RenderBuildings();
     RenderSky();

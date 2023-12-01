@@ -12,6 +12,7 @@
 #include "Building.hpp"
 #include "Sky.hpp"
 #include "Explosion.hpp"
+#include "Audio.hpp"
 #define NUM_ENEMY_TANKS 5
 
 namespace m1 {
@@ -63,6 +64,17 @@ namespace m1
     class InitTema2 : public gfxc::SimpleScene
     {
      public:
+        // Make enum for sound identification
+        enum Sound
+        {
+            MUSIC,
+			ENGINE_IDLE,
+            ENGINE_WORKING,
+            SHOOT,
+            EXPLOSION_CLOSE,
+            EXPLOSION_MID,
+            EXPLOSION_FAR
+		};
         InitTema2();
         ~InitTema2();
 
@@ -94,6 +106,8 @@ namespace m1
         void CreateSkyEntity();
         void CreateBuildingEntity();
         void CreateExplosionEntity();
+        void LoadSounds();
+
         void RenderTankEntity(bool minimap = false);
         void RenderEnemyTankEntity(bool minimap = false);
         void RenderExplosions(bool minimap = false);
@@ -144,6 +158,8 @@ namespace m1
         void InitTema2::UpdateMinimapProjectionAndView(
             glm::vec3 tankPosition);
         void UpdateMinimap();
+        void LoopMusic();
+        void LoopIdle();
 
         
         float elapsedTime = 0;
@@ -179,5 +195,11 @@ namespace m1
         float left;
         float bottom;
         float top;
+
+        std::vector<Audio*> sounds;
+        float lastTimeMusic = 0;
+        float lastTimeEngineIdle = 0;
+        float lastTimeEngineWorking = 0;
+        std::vector<bool> firstExplisonFrames = { true };
     };
-}   // namespace m1
+} // namespace m1

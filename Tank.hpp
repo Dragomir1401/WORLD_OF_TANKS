@@ -8,6 +8,7 @@
 #include "TurretOrientation.hpp"
 #include "Init.hpp"
 #include "TankMovement.hpp"
+#include "Audio.hpp"
 
 namespace m1 {
 	class Tank; // Forward declaration
@@ -92,5 +93,6 @@ namespace m1
 		float tankRadius = 5.0f * 0.35f;
 		float damage = 0;
 		float maxDamage = 9.0f;
+		glm::vec3 tankLastTranslate = glm::vec3(0, 0, 0);
 	};
 } // namespace m1

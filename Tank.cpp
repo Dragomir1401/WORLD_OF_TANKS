@@ -35,6 +35,18 @@ glm::mat4 m1::Tank::RenderBody(
         m1::InitTema2::RenderMeshMinimap(tankObjects["body"], shaders["ShaderTank"], modelMatrix, damage);
     }
 
+    if (tankAdjustedTranslate.x != tankLastTranslate.z ||
+        tankAdjustedTranslate.z != tankLastTranslate.z)
+    {
+		//this->tankMovingSound->Play();
+        tankLastTranslate = tankAdjustedTranslate;
+	}
+    else if (tankAdjustedTranslate.x == tankLastTranslate.z &&
+            tankAdjustedTranslate.z == tankLastTranslate.z)
+    {
+        //this->tankMovingSound->Stop();
+    }
+
     return modelMatrix;
 }
 
@@ -283,7 +295,6 @@ bool m1::Tank::CheckTankIndividualBuildingCollision(
 
 	return false;
 }
-
 
 bool m1::Tank::CheckTankTankCollision(
     Tank* otherTank,

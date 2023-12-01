@@ -22,6 +22,7 @@ namespace m1
 			std::unordered_map<std::string, Shader*> shaders,
 			bool minimap = false);
 		int GetAnimationIndex();
+		glm::vec3 GetPosition() { return this->position; }
 
 	private:
 		glm::vec3 position;

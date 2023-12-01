@@ -15,7 +15,8 @@ m1::Tank::~Tank()
 glm::mat4 m1::Tank::RenderBody(
     std::unordered_map<std::string, Shader*> shaders,
     glm::vec3 tankTranslate,
-    glm::vec3 tankRotate)
+    glm::vec3 tankRotate,
+    bool minimap)
 {
     glm::vec3 tankAdjustedTranslate = tankTranslate / tankScale;
 
@@ -24,7 +25,15 @@ glm::mat4 m1::Tank::RenderBody(
     modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
     modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
-    m1::InitTema2::RenderMesh(tankObjects["body"], shaders["ShaderTank"], modelMatrix, damage);
+
+    if (!minimap)
+    {
+        m1::InitTema2::RenderMesh(tankObjects["body"], shaders["ShaderTank"], modelMatrix, damage);
+    }
+    else
+    {
+        m1::InitTema2::RenderMeshMinimap(tankObjects["body"], shaders["ShaderTank"], modelMatrix, damage);
+    }
 
     return modelMatrix;
 }
@@ -33,7 +42,8 @@ m1::TurretOrientation m1::Tank::RenderTurret(
     std::unordered_map<std::string, Shader*> shaders,
     glm::vec3 tankTranslate,
     glm::vec3 tankRotate,
-    glm::vec3 mouseRotate)
+    glm::vec3 mouseRotate,
+    bool minimap)
 {
     glm::vec3 tankAdjustedTranslate = tankTranslate / tankScale;
     glm::mat4 modelMatrix = glm::mat4(1);
@@ -42,7 +52,15 @@ m1::TurretOrientation m1::Tank::RenderTurret(
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
     modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
     modelMatrix = glm::rotate(modelMatrix, -mouseRotate.y, glm::vec3(0, 1, 0));
-    m1::InitTema2::RenderMesh(tankObjects["turet"], shaders["ShaderTank"], modelMatrix);
+
+    if (!minimap)
+    {
+        m1::InitTema2::RenderMesh(tankObjects["turet"], shaders["ShaderTank"], modelMatrix);
+    }
+    else
+    {
+        m1::InitTema2::RenderMeshMinimap(tankObjects["turet"], shaders["ShaderTank"], modelMatrix);
+    }
 
     TurretOrientation turretOrientation;
     turretOrientation.turretRelativeRotationWhenBulletWasShot = tankRotate + glm::vec3(0, -mouseRotate.y, 0);
@@ -56,7 +74,8 @@ void m1::Tank::RenderTun(
     Shader*> shaders,
     glm::vec3 tankTranslate,
     glm::vec3 tankRotate, 
-    glm::vec3 mouseRotate)
+    glm::vec3 mouseRotate,
+    bool minimap)
 {
     glm::vec3 tankAdjustedTranslate = tankTranslate / tankScale;
     glm::mat4 modelMatrix = glm::mat4(1);
@@ -65,7 +84,15 @@ void m1::Tank::RenderTun(
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
     modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
     modelMatrix = glm::rotate(modelMatrix, -mouseRotate.y, glm::vec3(0, 1, 0));
-    m1::InitTema2::RenderMesh(tankObjects["tun"], shaders["ShaderTank"], modelMatrix);
+
+    if (!minimap)
+    {
+        m1::InitTema2::RenderMesh(tankObjects["tun"], shaders["ShaderTank"], modelMatrix);
+    }
+    else
+    {
+        m1::InitTema2::RenderMeshMinimap(tankObjects["tun"], shaders["ShaderTank"], modelMatrix);
+    }
 }
 
 
@@ -74,7 +101,8 @@ void m1::Tank::RenderWheels(
     glm::vec3 tankTranslate, 
     glm::vec3 tankRotate, 
     glm::vec3 wheelTilt, 
-    int animationIndex)
+    int animationIndex,
+    bool minimap)
 {
     glm::vec3 wheelAdjustedTranslate = tankTranslate / wheelScale;
     glm::vec3 wheelAdjustedRotate = tankRotate;
@@ -100,7 +128,14 @@ void m1::Tank::RenderWheels(
         glm::mat4 modelMatrix = intermediateModelMatrix1;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(3.4f, -0.39f, 0.35f));
         modelMatrix = glm::rotate(modelMatrix, wheelTilt.y, glm::vec3(0, 1, 0));
-        m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        if (!minimap)
+        {
+			m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+		}
+        else
+        {
+			m1::InitTema2::RenderMeshMinimap(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+		}
     }
 
     {
@@ -108,7 +143,14 @@ void m1::Tank::RenderWheels(
         std::string name = "wheel" + std::to_string(animationIndexReverse);
         glm::mat4 modelMatrix = intermediateModelMatrix1;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0.9f, -0.42f, 0.35f));
-        m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        if (!minimap)
+        {
+            m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
+        else
+        {
+            m1::InitTema2::RenderMeshMinimap(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
     }
 
     {
@@ -116,7 +158,14 @@ void m1::Tank::RenderWheels(
         std::string name = "wheel" + std::to_string(animationIndexReverse);
         glm::mat4 modelMatrix = intermediateModelMatrix1;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.6f, -0.42f, 0.35f));
-        m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        if (!minimap)
+        {
+            m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
+        else
+        {
+            m1::InitTema2::RenderMeshMinimap(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
     }
 
     {
@@ -124,7 +173,14 @@ void m1::Tank::RenderWheels(
         std::string name = "wheel" + std::to_string(animationIndexReverse);
         glm::mat4 modelMatrix = intermediateModelMatrix1;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.7f, -0.42f, 0.35f));
-        m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        if (!minimap)
+        {
+            m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
+        else
+        {
+            m1::InitTema2::RenderMeshMinimap(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
     }
 
     {
@@ -132,7 +188,14 @@ void m1::Tank::RenderWheels(
         std::string name = "wheel" + std::to_string(animationIndex);
         glm::mat4 modelMatrix = intermediateModelMatrix2;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(3.8f, -0.39f, 0.35f));
-        m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        if (!minimap)
+        {
+            m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
+        else
+        {
+            m1::InitTema2::RenderMeshMinimap(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
     }
 
     {
@@ -140,7 +203,14 @@ void m1::Tank::RenderWheels(
         std::string name = "wheel" + std::to_string(animationIndex);
         glm::mat4 modelMatrix = intermediateModelMatrix2;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(1.7f, -0.42f, 0.35f));
-        m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        if (!minimap)
+        {
+            m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
+        else
+        {
+            m1::InitTema2::RenderMeshMinimap(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
     }
 
     {
@@ -148,7 +218,14 @@ void m1::Tank::RenderWheels(
         std::string name = "wheel" + std::to_string(animationIndex);
         glm::mat4 modelMatrix = intermediateModelMatrix2;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.8f, -0.42f, 0.35f));
-        m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        if (!minimap)
+        {
+            m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
+        else
+        {
+            m1::InitTema2::RenderMeshMinimap(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
     }
 
     {
@@ -157,7 +234,14 @@ void m1::Tank::RenderWheels(
         glm::mat4 modelMatrix = intermediateModelMatrix2;
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.4f, -0.42f, 0.35f));
         modelMatrix = glm::rotate(modelMatrix, wheelTilt.y, glm::vec3(0, 1, 0));
-        m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        if (!minimap)
+        {
+            m1::InitTema2::RenderMesh(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
+        else
+        {
+            m1::InitTema2::RenderMeshMinimap(tankObjects[name], shaders["ShaderTank"], modelMatrix);
+        }
     }
 }
 

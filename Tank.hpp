@@ -35,27 +35,31 @@ namespace m1
 		glm::mat4 RenderBody(
 			std::unordered_map<std::string, Shader*> shaders,
 			glm::vec3 tankTranslate,
-			glm::vec3 tankRotate);
+			glm::vec3 tankRotate,
+			bool minimap = false);
 
 		TurretOrientation RenderTurret(
 			std::unordered_map<std::string, Shader*> shaders,
 			glm::vec3 tankTranslate,
 			glm::vec3 tankRotate,
-			glm::vec3 mouseRotate);
+			glm::vec3 mouseRotate,
+			bool minimap = false);
 
 		void RenderTun(
 			std::unordered_map<std::string,
 			Shader*> shaders,
 			glm::vec3 tankTranslate,
 			glm::vec3 tankRotate,
-			glm::vec3 mouseRotate);
+			glm::vec3 mouseRotate,
+			bool minimap = false);
 
 		void RenderWheels(
 			std::unordered_map<std::string, Shader*> shaders,
 			glm::vec3 tankTranslate,
 			glm::vec3 tankRotate,
 			glm::vec3 wheelTilt,
-			int animationIndex);
+			int animationIndex,
+			bool minimap = false);
 
 		bool CheckTankBuildingCollision(
 			Building* buildingBlock,

@@ -18,7 +18,9 @@ namespace m1
 		);
 		~Explosion();
 
-		bool RendExplosion(std::unordered_map<std::string, Shader*> shaders);
+		bool RendExplosion(
+			std::unordered_map<std::string, Shader*> shaders,
+			bool minimap = false);
 		int GetAnimationIndex();
 
 	private:

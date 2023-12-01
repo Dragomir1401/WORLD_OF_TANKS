@@ -42,7 +42,7 @@ m1::Building::~Building()
 {
 }
 
-void m1::Building::RenderBuilding(std::unordered_map<std::string, Shader*> shaders)
+void m1::Building::RenderBuilding(std::unordered_map<std::string, Shader*> shaders, bool minimap)
 {
     int translationIndex = 0;
     int realIndex = 0;
@@ -82,7 +82,15 @@ void m1::Building::RenderBuilding(std::unordered_map<std::string, Shader*> shade
                 buildingTypes.push_back(resourcePerParcel[i][j]);
             }
 
-            m1::InitTema2::RenderMesh(buildingObjects[name], shaders["ShaderTank"], modelMatrix, damagePerPosition[realIndex]);
+            if (!minimap)
+            {
+                m1::InitTema2::RenderMesh(buildingObjects[name], shaders["ShaderTank"], modelMatrix, damagePerPosition[realIndex]);
+            }
+            else
+            {
+                m1::InitTema2::RenderMeshMinimap(buildingObjects[name], shaders["ShaderTank"], modelMatrix, damagePerPosition[realIndex]);
+            }
+
             translationIndex++;
             realIndex++;
         }

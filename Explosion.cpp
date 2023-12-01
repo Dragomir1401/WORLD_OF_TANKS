@@ -13,7 +13,9 @@ m1::Explosion::~Explosion()
 {
 }
 
-bool m1::Explosion::RendExplosion(std::unordered_map<std::string, Shader*> shaders)
+bool m1::Explosion::RendExplosion(
+	std::unordered_map<std::string, Shader*> shaders,
+	bool minimap)
 {
 	this->animationIndex++;
 
@@ -25,10 +27,20 @@ bool m1::Explosion::RendExplosion(std::unordered_map<std::string, Shader*> shade
 	glm::mat4 modelMatrix = glm::mat4(1);
 	modelMatrix = glm::translate(modelMatrix, this->position);
 
-	m1::InitTema2::RenderMesh(
-		this->meshes["explosion" + std::to_string(this->animationIndex)],
-		shaders["ShaderTank"],
-		modelMatrix);
+	if (!minimap)
+	{
+		m1::InitTema2::RenderMesh(
+			this->meshes["explosion" + std::to_string(this->animationIndex)],
+			shaders["ShaderTank"],
+			modelMatrix);
+	}
+	else
+	{
+		m1::InitTema2::RenderMeshMinimap(
+			this->meshes["explosion" + std::to_string(this->animationIndex)],
+			shaders["ShaderTank"],
+			modelMatrix);
+	}
 
 	return true;
 }

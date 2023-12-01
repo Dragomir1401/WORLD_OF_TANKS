@@ -47,6 +47,16 @@ struct TankPosition
     m1::TurretOrientation turretOrientation;
 };
 
+struct ViewportArea
+{
+    ViewportArea() : x(0), y(0), width(1), height(1) {}
+    ViewportArea(int x, int y, int width, int height)
+        : x(x), y(y), width(width), height(height) {}
+    int x;
+    int y;
+    int width;
+    int height;
+};
 
 namespace m1
 {
@@ -62,7 +72,16 @@ namespace m1
             Shader* shader, 
             const glm::mat4& modelMatrix,
             float damageGrade = 0.0f);
+        static void RenderMeshMinimap(
+            Mesh* mesh,
+            Shader* shader,
+            const glm::mat4& modelMatrix,
+            float damageGrade = 0.0f
+            );
         static glm::mat4 projectionMatrix;
+        static glm::mat4 projectionMatrixMiniMap;
+        static glm::mat4 viewMatrix;
+        static glm::mat4 viewMatrixMiniMap;
         static Camera* camera;
 
      private:
@@ -75,9 +94,9 @@ namespace m1
         void CreateSkyEntity();
         void CreateBuildingEntity();
         void CreateExplosionEntity();
-        void RenderTankEntity();
-        void RenderEnemyTankEntity();
-        void RenderExplosions();
+        void RenderTankEntity(bool minimap = false);
+        void RenderEnemyTankEntity(bool minimap = false);
+        void RenderExplosions(bool minimap = false);
         void FrameStart() override;
         void Update(float deltaTimeSeconds) override;
         void FrameEnd() override;
@@ -102,9 +121,9 @@ namespace m1
             int deltaY);
         void ShootOnLeftClick();
         void MoveBulletsInLine();
-        void RenderGround();
+        void RenderGround(bool minimap = false);
         void RenderSky();
-        void RenderBuildings();
+        void RenderBuildings(bool minimap = false);
         void UpdateBasedOnTankTankCollision(
             Tank* tank, 
             TankMovement* tankMovement, 
@@ -122,6 +141,10 @@ namespace m1
             glm::vec3 enemyTankPosition,
             glm::vec3 playerTankPosition);
         void PositionCameraBehindTank();
+        void InitTema2::UpdateMinimapProjectionAndView(
+            glm::vec3 tankPosition);
+        void UpdateMinimap();
+
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;
@@ -144,10 +167,17 @@ namespace m1
         std::unordered_map<std::string, Mesh*> explosionObjects;
         glm::vec3 initialCameraPosition = glm::vec3(0, 0, 0);
         glm::vec3 lastTuretRotation = glm::vec3(0, 0, 0);
+        ViewportArea miniViewportArea;
+
         float cameraSpeed = 200.0f;
         float currentTime = 0;
         float lastTimeShot = 0;
         float fov = 60;
         int numberOfEnemyTanks = NUM_ENEMY_TANKS;
+
+        float right;
+        float left;
+        float bottom;
+        float top;
     };
 }   // namespace m1

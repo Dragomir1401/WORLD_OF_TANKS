@@ -9,7 +9,7 @@ m1::Ground::~Ground()
 {
 }
 
-void m1::Ground::RenderGround(std::unordered_map<std::string, Shader*> shaders)
+void m1::Ground::RenderGround(std::unordered_map<std::string, Shader*> shaders, bool minimap)
 {
     glm::mat4 modelMatrix;
     std::vector<glm::vec3> translations;
@@ -23,6 +23,14 @@ void m1::Ground::RenderGround(std::unordered_map<std::string, Shader*> shaders)
     for (const glm::vec3& translation : translations) {
         modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, translation);
-        m1::InitTema2::RenderMesh(groundObjects["ground"], shaders["ShaderTank"], modelMatrix);
+
+        if (!minimap)
+        {
+            m1::InitTema2::RenderMesh(groundObjects["ground"], shaders["ShaderTank"], modelMatrix);
+        }
+        else
+        {
+            m1::InitTema2::RenderMeshMinimap(groundObjects["ground"], shaders["ShaderTank"], modelMatrix);
+        }
     }
 }

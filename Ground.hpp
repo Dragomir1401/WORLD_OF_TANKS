@@ -14,7 +14,7 @@ namespace m1
 	public:
 		Ground(std::unordered_map<std::string, Mesh*> groundObjects);
 		~Ground();
-		void RenderGround(std::unordered_map<std::string, Shader*> shaders);
+		void RenderGround(std::unordered_map<std::string, Shader*> shaders, bool minimap = false);
 	private:
 		std::unordered_map<std::string, Mesh*> groundObjects;
 		float groundHeight = 0.02f;

@@ -9,6 +9,9 @@ using namespace std;
 using namespace m1;
 
 glm::mat4 m1::InitTema2::projectionMatrix;
+glm::mat4 m1::InitTema2::projectionMatrixMiniMap;
+glm::mat4 m1::InitTema2::viewMatrix;
+glm::mat4 m1::InitTema2::viewMatrixMiniMap;
 m1::Camera* m1::InitTema2::camera;
 
 
@@ -233,29 +236,53 @@ void m1::InitTema2::CreateExplosionEntity()
     }
 }
 
-void m1::InitTema2::RenderTankEntity()
+void m1::InitTema2::RenderTankEntity(bool minimap)
 {
-    tankPosition.tankWorldMatrix = tank->RenderBody(shaders, tankMovement->tankTranslate, tankMovement->tankRotate);
+    tankPosition.tankWorldMatrix = tank->RenderBody(
+        shaders, 
+        tankMovement->tankTranslate,
+        tankMovement->tankRotate,
+        minimap);
+
     tankPosition.tankCurrentPosition = tankPosition.tankWorldMatrix[3];
-    tankPosition.turretOrientation = tank->RenderTurret(shaders, tankMovement->tankTranslate, tankMovement->tankRotate, ComputeRotationBasedOnMouse());
-    tank->RenderTun(shaders, tankMovement->tankTranslate, tankMovement->tankRotate, ComputeRotationBasedOnMouse());
-    tank->RenderWheels(shaders, tankMovement->tankTranslate, tankMovement->tankRotate, tankMovement->wheelTilt, tankMovement->animationIndex);
+    tankPosition.turretOrientation = tank->RenderTurret(
+        shaders,
+        tankMovement->tankTranslate,
+        tankMovement->tankRotate,
+        ComputeRotationBasedOnMouse(),
+        minimap);
+
+    tank->RenderTun(
+        shaders, 
+        tankMovement->tankTranslate,
+        tankMovement->tankRotate, 
+        ComputeRotationBasedOnMouse(),
+        minimap);
+
+    tank->RenderWheels(
+        shaders, 
+        tankMovement->tankTranslate, 
+        tankMovement->tankRotate, 
+        tankMovement->wheelTilt,
+        tankMovement->animationIndex, 
+        minimap);
 }
 
 float NormalizeAngle(float angle) {
-    angle = fmod(angle, 2 * M_PI); // Normalize to [0, 2π) or [-π, π), as per your requirement
+    angle = (float)fmod(angle, 2 * M_PI); // Normalize to [0, 2π) or [-π, π), as per your requirement
     if (angle < 0) {
-        angle += 2 * M_PI;
+        angle += (float)(2 * M_PI);
     }
     return angle;
 }
 
-void m1::InitTema2::RenderEnemyTankEntity()
+void m1::InitTema2::RenderEnemyTankEntity(bool minimap)
 {
     for (int i = 0; i < enemyTanks.size(); i++)
     {
-        float worldTurretRotation = ComputeEnemyTurretDirection(enemyTankMovements[i]->tankTranslate + enemyTanks[i]->GetInitialPosition(),
-                                                                  tankMovement->tankTranslate + tank->GetInitialPosition());      
+        float worldTurretRotation = ComputeEnemyTurretDirection(
+            enemyTankMovements[i]->tankTranslate + enemyTanks[i]->GetInitialPosition(),
+            tankMovement->tankTranslate + tank->GetInitialPosition());      
 
         // Convert world rotation to tank-relative rotation
         float tankBodyRotationY = enemyTankMovements[i]->tankRotate.y;
@@ -266,21 +293,44 @@ void m1::InitTema2::RenderEnemyTankEntity()
 
         glm::vec3 turretDirection = glm::vec3(0, turretRelativeRotationY, 0);
         // moving tank to
-        enemyTankPositions[i].tankWorldMatrix = enemyTanks[i]->RenderBody(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate);
+        enemyTankPositions[i].tankWorldMatrix = enemyTanks[i]->RenderBody(
+            shaders,
+            enemyTankMovements[i]->tankTranslate,
+            enemyTankMovements[i]->tankRotate,
+            minimap);
+
         enemyTankPositions[i].tankCurrentPosition = enemyTankPositions[i].tankWorldMatrix[3];
-        enemyTankPositions[i].turretOrientation = enemyTanks[i]->RenderTurret(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, turretDirection);
-        enemyTanks[i]->RenderTun(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, turretDirection);
-        enemyTanks[i]->RenderWheels(shaders, enemyTankMovements[i]->tankTranslate, enemyTankMovements[i]->tankRotate, enemyTankMovements[i]->wheelTilt, enemyTankMovements[i]->animationIndex);
+        enemyTankPositions[i].turretOrientation = enemyTanks[i]->RenderTurret(
+            shaders, 
+            enemyTankMovements[i]->tankTranslate,
+            enemyTankMovements[i]->tankRotate, 
+            turretDirection, 
+            minimap);
+
+        enemyTanks[i]->RenderTun(
+            shaders, 
+            enemyTankMovements[i]->tankTranslate, 
+            enemyTankMovements[i]->tankRotate,
+            turretDirection, 
+            minimap);
+
+        enemyTanks[i]->RenderWheels(
+            shaders, 
+            enemyTankMovements[i]->tankTranslate, 
+            enemyTankMovements[i]->tankRotate, 
+            enemyTankMovements[i]->wheelTilt, 
+            enemyTankMovements[i]->animationIndex, 
+            minimap);
 	}
 }
 
-void m1::InitTema2::RenderExplosions()
+void m1::InitTema2::RenderExplosions(bool minimap)
 {
     // for every explosion
     for (int i = 0; i < explosions.size(); i++)
 	{
 		// render the explosion
-        bool res = explosions[i]->RendExplosion(shaders);
+        bool res = explosions[i]->RendExplosion(shaders, minimap);
 		if (res == false)
 		{
 			explosions.erase(explosions.begin() + i);
@@ -319,6 +369,42 @@ void m1::InitTema2::RenderMesh(
     mesh->Render();
 }
 
+void m1::InitTema2::RenderMeshMinimap(
+    Mesh* mesh,
+    Shader* shader,
+    const glm::mat4& modelMatrix,
+    float damageGrade
+	)
+{
+    if (!mesh || !shader || !shader->program)
+        return;
+
+    // Use the specified shader
+    shader->Use();
+
+    // Set the view and projection matrices for the minimap camera
+    glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(viewMatrixMiniMap));
+    glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrixMiniMap));
+    glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    // Set the damage intensity uniform
+    if (damageGrade > 0)
+    {
+        GLint damageIntensityLoc = glGetUniformLocation(shader->program, "damageIntensity");
+        float damageIntensity = damageGrade / 10.0f;
+        glUniform1f(damageIntensityLoc, damageIntensity);
+    }
+    else
+    {
+        GLint damageIntensityLoc = glGetUniformLocation(shader->program, "damageIntensity");
+        glUniform1f(damageIntensityLoc, 0.0f);
+    }
+
+
+    // Render the mesh
+    mesh->Render();
+}
+
 void m1::InitTema2::ShootOnLeftClick()
 {
     // Render the projectile at the tip of the tun when clicking left mouse button
@@ -353,9 +439,16 @@ void m1::InitTema2::MoveBulletsInLine()
 	}
 }
 
-void m1::InitTema2::RenderGround()
+void m1::InitTema2::RenderGround(bool minimap)
 {
-    ground->RenderGround(shaders);
+    if (!minimap)
+    {
+        ground->RenderGround(shaders);
+    }
+    else
+    {
+		ground->RenderGround(shaders, true);
+	}
 }
 
 void m1::InitTema2::RenderSky()
@@ -363,9 +456,16 @@ void m1::InitTema2::RenderSky()
     sky->RenderSky(shaders);
 }
 
-void m1::InitTema2::RenderBuildings()
+void m1::InitTema2::RenderBuildings(bool minimap)
 {
-    building->RenderBuilding(shaders);
+    if (!minimap)
+    {
+		building->RenderBuilding(shaders);
+	}
+	else
+	{
+        building->RenderBuilding(shaders, true);
+    }
 }
 
 void InitTema2::Init()
@@ -386,12 +486,16 @@ void InitTema2::Init()
         shaders[shader->GetName()] = shader;
     }
 
-    
+    // Sets the camera
     camera = new Camera();
     camera->Set(glm::vec3(-5, 2.5f, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
     initialCameraPosition = glm::vec3(-5, 2.5f, 0);
     projectionMatrix = glm::perspective(RADIANS(90), window->props.aspectRatio, 0.01f, 200.0f);
     fov = 80.0f;
+
+    // Sets the resolution of the small viewport
+    glm::ivec2 resolution = window->GetResolution();
+    miniViewportArea = ViewportArea(50, 50, (int)(resolution.x / 5.f), (int)(resolution.y / 5.f));
 }
 
 void InitTema2::PositionCameraBehindTank()
@@ -744,12 +848,47 @@ void InitTema2::Update(float deltaTimeSeconds)
     CheckAllBulletsTankCollisions();
     RenderExplosions();
 
+
+    // Display main elements in the minimap
+    UpdateMinimap();
+    glViewport(miniViewportArea.x, miniViewportArea.y, miniViewportArea.width, miniViewportArea.height);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    RenderGround(true);
+    RenderBuildings(true);
+    RenderTankEntity(true);
+    RenderEnemyTankEntity(true);
+    RenderExplosions(true);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, window->GetResolution().x, window->GetResolution().y);
+
     currentTime += deltaTimeSeconds;
+}
+
+void InitTema2::UpdateMinimapProjectionAndView(glm::vec3 tankPosition) 
+{
+    float heightAboveTank = 100.0f;
+    glm::vec3 cameraPosition = tankPosition + glm::vec3(0, heightAboveTank, 0);
+    glm::vec3 lookAtTarget = tankPosition;
+    glm::vec3 upDirection = glm::vec3(1, 0, 0);
+
+    viewMatrixMiniMap = glm::lookAt(cameraPosition, lookAtTarget, upDirection);
+
+    float orthoWidth = 20.0f;
+    float orthoHeight = 20.0f;
+    projectionMatrixMiniMap = glm::ortho(-orthoWidth / 2, orthoWidth / 2, -orthoHeight / 2, orthoHeight / 2, 0.01f, 100.f);
+}
+
+void InitTema2::UpdateMinimap() 
+{
+    glm::vec3 tankPosition = tankMovement->tankTranslate + tank->GetInitialPosition();
+    UpdateMinimapProjectionAndView(tankPosition);
 }
 
 void InitTema2::FrameEnd()
 {
-    DrawCoordinateSystem(camera->GetViewMatrix(), projectionMatrix);
+    //DrawCoordinateSystem(camera->GetViewMatrix(), projectionMatrix);
 }
 
 

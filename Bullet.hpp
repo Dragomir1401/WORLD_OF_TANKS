@@ -22,9 +22,12 @@ namespace m1
 			glm::vec3 turretRelativeRotationWhenBulletWasShot,
 			glm::mat4 turretWorldMatrixWhenBulletWasShot,
 			float shootedTime,
-			float bulletScale = 0.3f);
+			bool helicopter = false,
+			float bulletScale = 0.3f
+			);
 		~Bullet();
 		bool RendBullet(float currentTime, std::unordered_map<std::string, Shader*> shaders);
+		bool RendHelicopterBullet(float currentTime, std::unordered_map<std::string, Shader*> shaders);
 		float GetBulletRadius()
 		{
 			return bulletRadius * bulletScale;

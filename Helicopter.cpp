@@ -20,6 +20,8 @@ glm::mat4 m1::Helicopter::RenderBody(
     modelMatrix = glm::translate(modelMatrix, initialPosition);
     modelMatrix = glm::translate(modelMatrix, helicopterTranslate);
     modelMatrix = glm::rotate(modelMatrix, helicopterRotate.y, glm::vec3(0, 1, 0));
+    modelMatrix = glm::rotate(modelMatrix, helicopterRotate.x, glm::vec3(1, 0, 0));
+    modelMatrix = glm::rotate(modelMatrix, helicopterRotate.z, glm::vec3(0, 0, 1));
 
     if (!minimap)
     {
@@ -45,6 +47,8 @@ void m1::Helicopter::RenderBlade(
 	modelMatrix = glm::translate(modelMatrix, initialPosition);
 	modelMatrix = glm::translate(modelMatrix, helicopterTranslate);
 	modelMatrix = glm::rotate(modelMatrix, helicopterRotate.y, glm::vec3(0, 1, 0));
+    modelMatrix = glm::rotate(modelMatrix, helicopterRotate.x, glm::vec3(1, 0, 0));
+    modelMatrix = glm::rotate(modelMatrix, helicopterRotate.z, glm::vec3(0, 0, 1));
 
     std::string name = "blade" + std::to_string(animationIndex);
     if (!minimap)
@@ -68,6 +72,8 @@ void m1::Helicopter::RenderBackBlade(
     modelMatrix = glm::translate(modelMatrix, initialPosition);
     modelMatrix = glm::translate(modelMatrix, helicopterTranslate);
     modelMatrix = glm::rotate(modelMatrix, helicopterRotate.y, glm::vec3(0, 1, 0));
+    modelMatrix = glm::rotate(modelMatrix, helicopterRotate.x, glm::vec3(1, 0, 0));
+    modelMatrix = glm::rotate(modelMatrix, helicopterRotate.z, glm::vec3(0, 0, 1));
 
     std::string name = "backBlade" + std::to_string(animationIndex);
     if (!minimap)

@@ -389,6 +389,7 @@ void m1::InitTema2::RenderHelicopterEntity(bool minimap)
 		helicopterMovement->tankTranslate,
         helicopterMovement->tankRotate,
 		minimap);
+    helicopterPosition.tankCurrentPosition = helicopterPosition.tankWorldMatrix[3];
 
     helicopter->RenderBlade(
 		shaders,
@@ -622,17 +623,37 @@ void m1::InitTema2::ShootOnLeftClick()
     // Render the projectile at the tip of the tun when clicking left mouse button
     if (window->MouseHold(GLFW_MOUSE_BUTTON_LEFT) && currentTime - lastTimeShot > 2.0f)
     {
-        glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
-        Bullet* bullet = new Bullet(
-            tankPosition.tankCurrentPosition,
-            projectileObjects,
-            1,
-            tankMovement->tankRotate,
-            tankPosition.tankWorldMatrix,
-            mouseRotation,
-            tankPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
-            tankPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
-            currentTime);
+        Bullet* bullet;
+        if (!helicopterPerspective)
+        {
+            glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
+            bullet = new Bullet(
+                tankPosition.tankCurrentPosition,
+                projectileObjects,
+                1,
+                tankMovement->tankRotate,
+                tankPosition.tankWorldMatrix,
+                mouseRotation,
+                tankPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
+                tankPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
+                currentTime);
+        }
+        else
+        {
+            glm::vec3 helicopterPos = helicopterMovement->tankTranslate + helicopter->GetInitialPosition();
+            bullet = new Bullet(
+                helicopterPos,
+				projectileObjects,
+				1,
+				helicopterMovement->tankRotate,
+				helicopterPosition.tankWorldMatrix,
+				glm::vec3(0, 0, 0),
+				helicopterPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
+				helicopterPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
+				currentTime,
+                true,
+                0.6);
+        }
 
         bullets.push_back(bullet);
         lastTimeShot = currentTime;
@@ -646,7 +667,16 @@ void m1::InitTema2::MoveBulletsInLine()
 {
     for (auto &bullet : bullets)
     {
-        bool res = bullet->RendBullet(currentTime, shaders);
+        bool res;
+        if (!helicopterPerspective)
+        {
+            res = bullet->RendBullet(currentTime, shaders);
+        }
+        else
+        {
+            res = bullet->RendHelicopterBullet(currentTime, shaders);
+        }
+
         if (res == false)
 		{
 			bullets.erase(bullets.begin());
@@ -891,7 +921,7 @@ void InitTema2::DetectInput()
         }
         else
         {
-			helicopterMovement->tankRotate.y += moveSpeedTurn;
+			helicopterMovement->tankRotate.y += moveSpeedTurn / 3;
 			PositionCameraBehindEntity(helicopterMovement);
         }
     }
@@ -907,7 +937,7 @@ void InitTema2::DetectInput()
         }
         else
         {
-            helicopterMovement->tankRotate.y -= moveSpeedTurn;
+            helicopterMovement->tankRotate.y -= moveSpeedTurn / 3;
             PositionCameraBehindEntity(helicopterMovement);
         }
     }
@@ -922,6 +952,34 @@ void InitTema2::DetectInput()
         helicopterMovement->animationIndex = 1;
     }
     helicopterMovement->animationIndex += 1;
+
+
+    if (helicopterPerspective)
+    {
+        if (window->KeyHold(GLFW_KEY_RIGHT))
+        {
+			helicopterMovement->tankRotate.x += moveSpeedTurn / 3;
+			PositionCameraBehindEntity(helicopterMovement);
+        }
+
+        if (window->KeyHold(GLFW_KEY_LEFT))
+        {
+            helicopterMovement->tankRotate.x -= moveSpeedTurn / 3;
+            PositionCameraBehindEntity(helicopterMovement);
+        }
+
+        if (window->KeyHold(GLFW_KEY_DOWN))
+        {
+			helicopterMovement->tankRotate.z += moveSpeedTurn / 3;
+			PositionCameraBehindEntity(helicopterMovement);
+		}
+
+        if (window->KeyHold(GLFW_KEY_UP))
+        {
+            helicopterMovement->tankRotate.z -= moveSpeedTurn / 3;
+            PositionCameraBehindEntity(helicopterMovement);
+        }
+    }
 }
 
 void m1::InitTema2::UpdateBasedOnTankTankCollision(Tank *tank, TankMovement *tankMovement, int tankId)
@@ -942,7 +1000,7 @@ void m1::InitTema2::UpdateBasedOnTankTankCollision(Tank *tank, TankMovement *tan
             glm::vec3 P = PF * glm::normalize(diff);
             enemyTankMovements[i]->tankTranslate -= P;
 
-            if (tankId == -1)
+            if (tankId == -1 && !helicopterPerspective)
             {
                 PositionCameraBehindEntity(tankMovement);
             }
@@ -962,7 +1020,7 @@ void m1::InitTema2::UpdateBasedOnTankBuildingCollision(Tank* tank, TankMovement*
 			glm::vec3 P = PF * glm::normalize(diff);
 			tankMovement->tankTranslate += P;
 
-            if (tankId == -1)
+            if (tankId == -1 && !helicopterPerspective)
             {
                 PositionCameraBehindEntity(tankMovement);
             }
@@ -995,7 +1053,7 @@ void m1::InitTema2::CheckAllBulletsBuildingCollisions()
     // For each bullet
     for (int i = 0; i < bullets.size(); i++)
 	{
-		if (CheckBulletBuildingCollision(bullets[i]))
+		if (CheckBulletBuildingCollision(bullets[i]) || bullets[i]->GetBulletPosition().y <= 0)
 		{
             Explosion* explosion = new Explosion(
                                     explosionObjects,
@@ -1163,7 +1221,7 @@ void m1::InitTema2::PositionCameraThirdPerson(int deltaX, int deltaY)
 
 void InitTema2::LoopMusic()
 {
-    if (currentTime - lastTimeMusic > 120.0f)
+    if (currentTime - lastTimeMusic > 80.0f)
     {
         sounds[MUSIC]->Kill();
 		sounds[MUSIC]->Play();
@@ -1233,6 +1291,7 @@ void InitTema2::Update(float deltaTimeSeconds)
 {
     if (isMenu)
     {
+        LoopMusic();
         MenuSetup();
         MenuActions();
         return;

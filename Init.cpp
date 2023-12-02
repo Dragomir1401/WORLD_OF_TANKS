@@ -959,26 +959,33 @@ void InitTema2::DetectInput()
         if (window->KeyHold(GLFW_KEY_RIGHT))
         {
 			helicopterMovement->tankRotate.x += moveSpeedTurn / 3;
-			PositionCameraBehindEntity(helicopterMovement);
         }
 
         if (window->KeyHold(GLFW_KEY_LEFT))
         {
             helicopterMovement->tankRotate.x -= moveSpeedTurn / 3;
-            PositionCameraBehindEntity(helicopterMovement);
         }
 
         if (window->KeyHold(GLFW_KEY_DOWN))
         {
 			helicopterMovement->tankRotate.z += moveSpeedTurn / 3;
-			PositionCameraBehindEntity(helicopterMovement);
 		}
 
         if (window->KeyHold(GLFW_KEY_UP))
         {
             helicopterMovement->tankRotate.z -= moveSpeedTurn / 3;
-            PositionCameraBehindEntity(helicopterMovement);
         }
+
+        if (window->KeyHold(GLFW_KEY_N))
+        {
+			helicopterMovement->tankTranslate.y -= moveSpeed;
+		}
+
+        if (window->KeyHold(GLFW_KEY_M))
+        {
+			helicopterMovement->tankTranslate.y += moveSpeed;
+		}
+        PositionCameraBehindEntity(helicopterMovement);
     }
 }
 

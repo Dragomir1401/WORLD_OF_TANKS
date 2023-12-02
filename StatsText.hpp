@@ -17,11 +17,14 @@ namespace m1
 			gfxc::TextRenderer* textRenderer,
 			glm::ivec2 resolution);
 		~StatsText();
+
 		void RenderStatsText(
 			std::unordered_map<std::string,
 			Shader*> shaders,
 			int kills,
 			int landedShots);
+		void RenderDeathText(
+			std::unordered_map<std::string, Shader*> shaders);
 
 	private:
 		gfxc::TextRenderer* textRenderer;

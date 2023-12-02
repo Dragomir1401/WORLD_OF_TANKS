@@ -16,6 +16,7 @@
 #include "Menu.hpp"
 #include "components/text_renderer.h"
 #include "StatsText.hpp"
+#include "Helicopter.hpp"
 #define NUM_ENEMY_TANKS 5
 
 namespace m1 {
@@ -48,7 +49,9 @@ namespace m1 {
 namespace m1 {
 	class StatsText; // Forward declaration
 }
-
+namespace m1 {
+	class Helicopter; // Forward declaration
+}
 
 struct TankPosition
 {
@@ -82,7 +85,10 @@ namespace m1
             SHOOT,
             EXPLOSION_CLOSE,
             EXPLOSION_MID,
-            EXPLOSION_FAR
+            EXPLOSION_FAR,
+            FATALITY,
+            DIED,
+            HELICOPTER
 		};
         InitTema2();
         ~InitTema2();
@@ -115,6 +121,7 @@ namespace m1
         void CreateTankEntity(
             std::string sourceObjDirTank,
             bool isEnemy);
+        void CreateHelicopterEntity();
         void CreateEmemyTankEntity();
         void CreateProjectileEntity();
         void CreateGroundEntity();
@@ -126,6 +133,7 @@ namespace m1
         void LoadSounds();
 
         void RenderTankEntity(bool minimap = false);
+        void RenderHelicopterEntity(bool minimap = false);
         void RenderEnemyTankEntity(bool minimap = false);
         void RenderExplosions(bool minimap = false);
         void FrameStart() override;
@@ -163,7 +171,8 @@ namespace m1
             int tankId);
         void UpdateBasedOnTankBuildingCollision(
             Tank* tank, 
-            TankMovement* tankMovement);
+            TankMovement* tankMovement,
+            int tankId);
         bool CheckBulletBuildingCollision(
             m1::Bullet* bullet);
         void CheckAllBulletsBuildingCollisions();
@@ -173,7 +182,7 @@ namespace m1
         float ComputeEnemyTurretDirection(
             glm::vec3 enemyTankPosition,
             glm::vec3 playerTankPosition);
-        void PositionCameraBehindTank();
+        void PositionCameraBehindEntity(TankMovement* movement);
         void InitTema2::UpdateMinimapProjectionAndView(
             glm::vec3 tankPosition);
         void UpdateMinimap();
@@ -182,11 +191,15 @@ namespace m1
         void MenuSetup();
         void MenuActions();
         void PlaceCameraForMenu();
+        void CloseIfDead();
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;
+        m1::Helicopter* helicopter = nullptr;
         m1::TankMovement* tankMovement;
+        m1::TankMovement* helicopterMovement;
         TankPosition tankPosition;
+        TankPosition helicopterPosition;
         m1::Ground* ground = nullptr;
         m1::Sky* sky = nullptr;
         m1::Building* building = nullptr;
@@ -198,6 +211,7 @@ namespace m1
         std::vector<m1::Bullet*> bullets;
         std::vector<m1::Explosion*> explosions;
         std::unordered_map<std::string, Mesh*> tankObjects;
+        std::unordered_map<std::string, Mesh*> helicopterObjects;
         std::unordered_map<std::string, Mesh*> enemyTankObjects;
         std::unordered_map<std::string, Mesh*> projectileObjects;
         std::unordered_map<std::string, Mesh*> groundObjects;
@@ -231,5 +245,9 @@ namespace m1
         gfxc::TextRenderer* statsRenderer;
         int kills = 0;
         int landedShots = 0;
+
+        float counterSinceDeath = 0;
+        bool helicopterPerspective = false;
+        float helicopterHeightOfFlying = 5;
     };
 } // namespace m1

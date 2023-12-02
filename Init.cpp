@@ -125,6 +125,50 @@ void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
 	}
 }
 
+void m1::InitTema2::CreateHelicopterEntity()
+{
+    string sourceObjDirHelicopter = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "helicopter");
+
+    {
+        Mesh* mesh = new Mesh("body");
+        mesh->LoadMesh(sourceObjDirHelicopter, "body.obj");
+        helicopterObjects["body"] = mesh;
+    }
+
+    for (int i = 1; i <= 10; i++)
+    {
+		string name = "blade" + to_string(i);
+		string nameObj = "blade" + to_string(i) + ".obj";
+		Mesh* mesh = new Mesh(name);
+		mesh->LoadMesh(sourceObjDirHelicopter, nameObj);
+		helicopterObjects[name] = mesh;
+    }
+
+    for (int i = 1; i <= 10; i++)
+    {
+        string name = "backBlade" + to_string(i);
+        string nameObj = "backBlade" + to_string(i) + ".obj";
+        Mesh* mesh = new Mesh(name);
+        mesh->LoadMesh(sourceObjDirHelicopter, nameObj);
+        helicopterObjects[name] = mesh;
+    }
+
+    helicopterMovement = new TankMovement(
+		glm::vec3(0, helicopterHeightOfFlying, 0),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0, 0, 0),
+		0,
+		1,
+		false,
+		m1::TankMovement::TankState::Idle);
+
+    helicopterPosition.tankWorldMatrix = glm::mat4(1);
+    helicopterPosition.tankCurrentPosition = glm::vec3(0, 0, 0);
+    helicopterPosition.turretOrientation = TurretOrientation();
+
+    helicopter = new Helicopter(helicopterObjects, glm::vec3(0, helicopterHeightOfFlying, 0));
+}
+
 
 void m1::InitTema2::CreateEmemyTankEntity()
 {
@@ -288,6 +332,15 @@ void m1::InitTema2::LoadSounds()
 
         audio = new Audio(sourceObjDirSounds + "/explosionLongRange.wav", EXPLOSION_FAR);
         sounds.push_back(audio);
+
+        audio = new Audio(sourceObjDirSounds + "/fatality.wav", FATALITY);
+        sounds.push_back(audio);
+
+        audio = new Audio(sourceObjDirSounds + "/died.wav", DIED);
+        sounds.push_back(audio);
+
+        audio = new Audio(sourceObjDirSounds + "/helicopter.wav", HELICOPTER);
+        sounds.push_back(audio);
 	}
 }
 
@@ -299,19 +352,25 @@ void m1::InitTema2::RenderTankEntity(bool minimap)
         tankMovement->tankRotate,
         minimap);
 
+    glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
+    if (helicopterPerspective)
+    {
+        mouseRotation = glm::vec3(0, 0, 0);
+    }
+
     tankPosition.tankCurrentPosition = tankPosition.tankWorldMatrix[3];
     tankPosition.turretOrientation = tank->RenderTurret(
         shaders,
         tankMovement->tankTranslate,
         tankMovement->tankRotate,
-        ComputeRotationBasedOnMouse(),
+        mouseRotation,
         minimap);
 
     tank->RenderTun(
         shaders, 
         tankMovement->tankTranslate,
         tankMovement->tankRotate, 
-        ComputeRotationBasedOnMouse(),
+        mouseRotation,
         minimap);
 
     tank->RenderWheels(
@@ -320,6 +379,29 @@ void m1::InitTema2::RenderTankEntity(bool minimap)
         tankMovement->tankRotate, 
         tankMovement->wheelTilt,
         tankMovement->animationIndex, 
+        minimap);
+}
+
+void m1::InitTema2::RenderHelicopterEntity(bool minimap)
+{
+    helicopterPosition.tankWorldMatrix = helicopter->RenderBody(
+		shaders,
+		helicopterMovement->tankTranslate,
+        helicopterMovement->tankRotate,
+		minimap);
+
+    helicopter->RenderBlade(
+		shaders,
+        helicopterMovement->tankTranslate,
+        helicopterMovement->tankRotate,
+        helicopterMovement->animationIndex,
+		minimap);
+
+    helicopter->RenderBackBlade(
+        shaders,
+        helicopterMovement->tankTranslate,
+        helicopterMovement->tankRotate,
+        helicopterMovement->animationIndex,
         minimap);
 }
 
@@ -615,7 +697,15 @@ void InitTema2::Init()
 {
     LoadSounds();
     sounds.at(MUSIC)->Play();
-    sounds.at(ENGINE_IDLE)->Play();
+
+    if (!helicopterPerspective)
+    {
+        sounds.at(ENGINE_IDLE)->Play();
+    }
+    else
+    {
+        sounds.at(HELICOPTER)->Play();
+    }
     CreateGroundEntity();
     CreateBuildingEntity();
     CreateSkyEntity();
@@ -623,6 +713,7 @@ void InitTema2::Init()
     CreateEmemyTankEntity();
     CreateProjectileEntity();
     CreateExplosionEntity();
+    CreateHelicopterEntity();
 
     {
         Shader *shader = new Shader("ShaderTank");
@@ -642,7 +733,10 @@ void InitTema2::Init()
 
     // Sets the camera
     camera = new Camera();
-    camera->Set(glm::vec3(-5, 2.5f, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+    float distanceBehind = 5.0f;
+    float elevation = 2.5f;
+    glm::vec3 cameraPosition = tankMovement->tankTranslate + glm::vec3(0, elevation, 0);
+    camera->Set(cameraPosition, tankMovement->tankTranslate, glm::vec3(0, 1, 0));
     initialCameraPosition = glm::vec3(-5, 2.5f, 0);
     projectionMatrix = glm::perspective(RADIANS(90), window->props.aspectRatio, 0.01f, 200.0f);
     fov = 80.0f;
@@ -654,15 +748,23 @@ void InitTema2::Init()
     CreateStatsTextEntity(resolution);
 }
 
-void InitTema2::PositionCameraBehindTank()
+void InitTema2::PositionCameraBehindEntity(TankMovement* movement)
 {
-    glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(tankMovement->tankRotate.y), 0, -sin(tankMovement->tankRotate.y)));
+    glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(movement->tankRotate.y), 0, -sin(movement->tankRotate.y)));
 
-    float distanceBehind = 5.0f; // Distance behind the tank
-    float elevation = 2.5f; // Elevation above the tank
-    glm::vec3 cameraPosition = tankMovement->tankTranslate - forwardDir * distanceBehind + glm::vec3(0, elevation, 0);
+    float distanceBehind = 5.0f;
+    if (helicopterPerspective)
+    {
+		distanceBehind = 7.5f;
+	}
+    float elevation = 2.5f + movement->tankTranslate.y;
+    if (helicopterPerspective)
+    {
+        elevation += 2.5f;
+    }
+    glm::vec3 cameraPosition = movement->tankTranslate - forwardDir * distanceBehind + glm::vec3(0, elevation, 0);
 
-	camera->Set(cameraPosition, tankMovement->tankTranslate, glm::vec3(0, 1, 0));
+	camera->Set(cameraPosition, movement->tankTranslate, glm::vec3(0, 1, 0));
 }
 
 void InitTema2::FrameStart()
@@ -703,66 +805,123 @@ void InitTema2::UpdateAnimationTrackers(bool &animationIncreaser, TankMovement* 
 
 void InitTema2::DetectInput()
 {
-    glm::vec3 forwardDir = glm::normalize(glm::vec3(cos(tankMovement->tankRotate.y), 0, -sin(tankMovement->tankRotate.y)));
+    glm::vec3 forwardDir;
+    if (!helicopterPerspective)
+    {
+        forwardDir = glm::normalize(glm::vec3(cos(tankMovement->tankRotate.y), 0, -sin(tankMovement->tankRotate.y)));
+        tankMovement->wheelTilt.y = 0;
+    }
+    else
+    {
+		forwardDir = glm::normalize(glm::vec3(cos(helicopterMovement->tankRotate.y), 0, -sin(helicopterMovement->tankRotate.y)));
+	}
     float moveSpeed = 0.09f;
     float moveSpeedFast = 0.20f;
     float moveSpeedSlow = 0.05f;
     float moveSpeedTurn = 0.03f;
 
-    tankMovement->wheelTilt.y = 0;
-
     if (window->KeyHold(GLFW_KEY_W))
     {
-        tankMovement->animationSkipper += 2;
-        tankMovement->tankTranslate += moveSpeed * forwardDir;
-        PositionCameraBehindTank();
-
-        if (currentTime > lastTimeEngineWorking + 3.0f)
+        if (!helicopterPerspective)
         {
-            sounds.at(ENGINE_WORKING)->Kill();
-			sounds.at(ENGINE_WORKING)->Play();
-			lastTimeEngineWorking = currentTime;
-		}
+            tankMovement->animationSkipper += 2;
+            tankMovement->tankTranslate += moveSpeed * forwardDir;
+            PositionCameraBehindEntity(tankMovement);
+
+            if (currentTime > lastTimeEngineWorking + 3.0f)
+            {
+                sounds.at(ENGINE_WORKING)->Kill();
+                sounds.at(ENGINE_WORKING)->Play();
+                lastTimeEngineWorking = currentTime;
+            }
+        }
+        else
+        {
+			helicopterMovement->tankTranslate += moveSpeed * forwardDir;
+            PositionCameraBehindEntity(helicopterMovement);
+        }
     }
 
     if (window->KeyHold(GLFW_KEY_R))
     {
-        tankMovement->animationSkipper += 8;
-        tankMovement->tankTranslate += moveSpeedFast * forwardDir;
-        PositionCameraBehindTank();
-
-        if (currentTime > lastTimeEngineWorking + 3.0f)
+        if (!helicopterPerspective)
         {
-            sounds.at(ENGINE_WORKING)->Kill();
-            sounds.at(ENGINE_WORKING)->Play();
-            lastTimeEngineWorking = currentTime;
+            tankMovement->animationSkipper += 8;
+            tankMovement->tankTranslate += moveSpeedFast * forwardDir;
+            PositionCameraBehindEntity(tankMovement);
+
+            if (currentTime > lastTimeEngineWorking + 3.0f)
+            {
+                sounds.at(ENGINE_WORKING)->Kill();
+                sounds.at(ENGINE_WORKING)->Play();
+                lastTimeEngineWorking = currentTime;
+            }
+        }
+        else
+        {
+            helicopterMovement->tankTranslate += moveSpeedFast * forwardDir;
+            PositionCameraBehindEntity(helicopterMovement);
         }
     }
 
     if (window->KeyHold(GLFW_KEY_S))
     {
-        tankMovement->tankTranslate += moveSpeedSlow * -forwardDir;
-        tankMovement->animationSkipper++;
-        tankMovement->animationIncreaser = true;
-        PositionCameraBehindTank();
+        if (!helicopterPerspective)
+        {
+            tankMovement->tankTranslate += moveSpeedSlow * -forwardDir;
+            tankMovement->animationSkipper++;
+            tankMovement->animationIncreaser = true;
+            PositionCameraBehindEntity(tankMovement);
+        }
+        else
+        {
+            helicopterMovement->tankTranslate += moveSpeedSlow * -forwardDir;
+			PositionCameraBehindEntity(helicopterMovement);
+        }
     }
 
     if (window->KeyHold(GLFW_KEY_A))
     {
-        tankMovement->tankRotate.y += moveSpeedTurn;
-        tankMovement->wheelTilt.y = 0.3f;
-        tankMovement->animationSkipper++;
-        PositionCameraBehindTank();
+        if (!helicopterPerspective)
+        {
+            tankMovement->tankRotate.y += moveSpeedTurn;
+            tankMovement->wheelTilt.y = 0.3f;
+            tankMovement->animationSkipper++;
+            PositionCameraBehindEntity(tankMovement);
+        }
+        else
+        {
+			helicopterMovement->tankRotate.y += moveSpeedTurn;
+			PositionCameraBehindEntity(helicopterMovement);
+        }
     }
 
     if (window->KeyHold(GLFW_KEY_D))
     {
-        tankMovement->tankRotate.y -= moveSpeedTurn;
-        tankMovement->wheelTilt.y = -0.3f;
-        tankMovement->animationSkipper++;
-        PositionCameraBehindTank();
+        if (!helicopterPerspective)
+        {
+            tankMovement->tankRotate.y -= moveSpeedTurn;
+            tankMovement->wheelTilt.y = -0.3f;
+            tankMovement->animationSkipper++;
+            PositionCameraBehindEntity(tankMovement);
+        }
+        else
+        {
+            helicopterMovement->tankRotate.y -= moveSpeedTurn;
+            PositionCameraBehindEntity(helicopterMovement);
+        }
     }
-    UpdateAnimationTrackers(tankMovement->animationIncreaser, tankMovement);
+
+    if (!helicopterPerspective)
+    {
+        UpdateAnimationTrackers(tankMovement->animationIncreaser, tankMovement);
+    }
+
+    if (helicopterMovement->animationIndex > 10)
+    {
+        helicopterMovement->animationIndex = 1;
+    }
+    helicopterMovement->animationIndex += 1;
 }
 
 void m1::InitTema2::UpdateBasedOnTankTankCollision(Tank *tank, TankMovement *tankMovement, int tankId)
@@ -783,12 +942,15 @@ void m1::InitTema2::UpdateBasedOnTankTankCollision(Tank *tank, TankMovement *tan
             glm::vec3 P = PF * glm::normalize(diff);
             enemyTankMovements[i]->tankTranslate -= P;
 
-            PositionCameraBehindTank();
+            if (tankId == -1)
+            {
+                PositionCameraBehindEntity(tankMovement);
+            }
 		}
 	}
 }
 
-void m1::InitTema2::UpdateBasedOnTankBuildingCollision(Tank* tank, TankMovement* tankMovement)
+void m1::InitTema2::UpdateBasedOnTankBuildingCollision(Tank* tank, TankMovement* tankMovement, int tankId)
 {
     for (int i = 0; i < building->GetBuildingPositions().size(); i++)
     {
@@ -799,7 +961,11 @@ void m1::InitTema2::UpdateBasedOnTankBuildingCollision(Tank* tank, TankMovement*
 			float PF = tank->GetTankRadius() + building->GetBuildingRadiusPerType()[building->GetBuildingTypes()[i]] - distance;
 			glm::vec3 P = PF * glm::normalize(diff);
 			tankMovement->tankTranslate += P;
-			PositionCameraBehindTank();
+
+            if (tankId == -1)
+            {
+                PositionCameraBehindEntity(tankMovement);
+            }
 		}
 	}
 }
@@ -863,6 +1029,8 @@ bool m1::InitTema2::CheckBulletTankCollision(m1::Bullet* bullet)
 				enemyTankMovements.erase(enemyTankMovements.begin() + i);
 				enemyTankPositions.erase(enemyTankPositions.begin() + i);
                 kills++;
+                sounds[FATALITY]->Kill();
+                sounds[FATALITY]->Play();
             }
 			return true;
 		}
@@ -1004,10 +1172,18 @@ void InitTema2::LoopMusic()
 }
 
 void InitTema2::LoopIdle() {
-    if (currentTime - lastTimeEngineIdle > 9.0f)
+    if (currentTime - lastTimeEngineIdle > 8.0f)
     {
-        sounds[ENGINE_IDLE]->Kill();
-        sounds[ENGINE_IDLE]->Play();
+        if (!helicopterPerspective)
+        {
+            sounds[ENGINE_IDLE]->Kill();
+            sounds[ENGINE_IDLE]->Play();
+        }
+        else
+        {
+            sounds[HELICOPTER]->Kill();
+			sounds[HELICOPTER]->Play();
+        }
         lastTimeEngineIdle = currentTime;
     }
 }
@@ -1041,6 +1217,18 @@ void InitTema2::PlaceCameraForMenu()
     camera->Set(glm::vec3(16, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 }
 
+void m1::InitTema2::CloseIfDead()
+{
+    if (counterSinceDeath)
+    {
+        statsText->RenderDeathText(shaders);
+        if (currentTime - counterSinceDeath > 5.0f)
+        {
+			exit(0);
+        }
+    }
+}
+
 void InitTema2::Update(float deltaTimeSeconds)
 {
     if (isMenu)
@@ -1058,10 +1246,11 @@ void InitTema2::Update(float deltaTimeSeconds)
 
     RandomizeEnemyTankMovement(deltaTimeSeconds);
     DetectInput();
-    UpdateBasedOnTankBuildingCollision(tank, tankMovement);
+
+    UpdateBasedOnTankBuildingCollision(tank, tankMovement, -1);
     for (int i = 0; i < enemyTanks.size(); i++)
     {
-		UpdateBasedOnTankBuildingCollision(enemyTanks[i], enemyTankMovements[i]);
+		UpdateBasedOnTankBuildingCollision(enemyTanks[i], enemyTankMovements[i], i);
 	}
     UpdateBasedOnTankTankCollision(tank, tankMovement, -1);
     for (int i = 0; i < enemyTanks.size(); i++)
@@ -1069,6 +1258,7 @@ void InitTema2::Update(float deltaTimeSeconds)
         UpdateBasedOnTankTankCollision(enemyTanks[i], enemyTankMovements[i], i);
     }
 
+    RenderHelicopterEntity();
     RenderTankEntity();
     RenderEnemyTankEntity();
 
@@ -1081,7 +1271,6 @@ void InitTema2::Update(float deltaTimeSeconds)
 
     RenderStatsText();
 
-
     // Display main elements in the minimap
     UpdateMinimap();
     glViewport(miniViewportArea.x, miniViewportArea.y, miniViewportArea.width, miniViewportArea.height);
@@ -1089,12 +1278,15 @@ void InitTema2::Update(float deltaTimeSeconds)
 
     RenderGround(true);
     RenderBuildings(true);
+    RenderHelicopterEntity(true);
     RenderTankEntity(true);
     RenderEnemyTankEntity(true);
     RenderExplosions(true);
 
     glClear(GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, window->GetResolution().x, window->GetResolution().y);
+
+    CloseIfDead();
 
     currentTime += deltaTimeSeconds;
 }
@@ -1116,7 +1308,16 @@ void InitTema2::UpdateMinimapProjectionAndView(glm::vec3 tankPosition)
 void InitTema2::UpdateMinimap() 
 {
     glm::vec3 tankPosition = tankMovement->tankTranslate + tank->GetInitialPosition();
-    UpdateMinimapProjectionAndView(tankPosition);
+    glm::vec3 helicopterPosition = helicopterMovement->tankTranslate + helicopter->GetInitialPosition();
+    helicopterPosition.y = 0;
+    if (!helicopterPerspective)
+    {
+        UpdateMinimapProjectionAndView(tankPosition);
+    }
+    else
+    {
+        UpdateMinimapProjectionAndView(helicopterPosition);
+    }
 }
 
 void InitTema2::FrameEnd()
@@ -1151,6 +1352,33 @@ void InitTema2::OnInputUpdate(float deltaTime, int mods)
 
 void InitTema2::OnKeyPress(int key, int mods)
 {
+    // On key k damge my tank for debugging purposes
+    if (key == GLFW_KEY_K)
+    {
+		tank->Damage();
+
+        if (tank->GetDamage() > tank->GetMaxDamage())
+        {
+            if (!counterSinceDeath)
+            {
+                // Play the sound only once
+                sounds.at(DIED)->Kill();
+                sounds.at(DIED)->Play();
+            }
+            counterSinceDeath = currentTime;
+		}
+    }
+
+    // On key h switch to helicopter perspective
+    if (key == GLFW_KEY_H)
+    {
+		helicopterPerspective = !helicopterPerspective;
+        if (helicopterPerspective)
+        {
+			sounds.at(ENGINE_IDLE)->Kill();
+			sounds.at(ENGINE_WORKING)->Kill();
+		}
+	}
 }
 
 

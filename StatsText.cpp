@@ -19,3 +19,8 @@ void m1::StatsText::RenderStatsText(std::unordered_map<std::string, Shader*> sha
 	textRenderer->RenderText("Landed shots: " + std::to_string(landedShots), 10.0f, 60.0f, 1.0f, kTextColor);
 }
 
+void m1::StatsText::RenderDeathText(std::unordered_map<std::string, Shader*> shaders)
+{
+	// Render "You died!" in the middle of the screen
+	textRenderer->RenderText("You died!", 500.0f, 100.0f, 3.0f, kTextColor);
+}

@@ -236,6 +236,34 @@ void m1::InitTema2::CreateExplosionEntity()
     }
 }
 
+void m1::InitTema2::CreateMenuEntity(glm::ivec2 resolution)
+{
+    const string sourceObjDirMenu = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "objects", "menu");
+    {
+		Mesh* mesh = new Mesh("menu");
+		mesh->LoadMesh(sourceObjDirMenu, "background.obj");
+		menuObjects["background"] = mesh;
+	}
+
+    {
+        Mesh* mesh = new Mesh("button");
+        mesh->LoadMesh(sourceObjDirMenu, "button.obj");
+        menuObjects["button"] = mesh;
+    }
+
+    textRenderer = new gfxc::TextRenderer(window->props.selfDir, resolution.x, resolution.y);
+    textRenderer->Load(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::FONTS, "Hack-Bold.ttf"), 18);
+	menu = new Menu(menuObjects, textRenderer, resolution);
+}
+
+void m1::InitTema2::CreateStatsTextEntity(glm::ivec2 resolution)
+{
+    statsRenderer = new gfxc::TextRenderer(window->props.selfDir, resolution.x, resolution.y);
+    statsRenderer->Load(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::FONTS, "Hack-Bold.ttf"), 18);
+
+    statsText = new StatsText(statsRenderer, resolution);
+}
+
 void m1::InitTema2::LoadSounds()
 {
     const string sourceObjDirSounds = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "sounds");
@@ -296,7 +324,7 @@ void m1::InitTema2::RenderTankEntity(bool minimap)
 }
 
 float NormalizeAngle(float angle) {
-    angle = (float)fmod(angle, 2 * M_PI); // Normalize to [0, 2π) or [-π, π), as per your requirement
+    angle = (float)fmod(angle, 2 * M_PI);
     if (angle < 0) {
         angle += (float)(2 * M_PI);
     }
@@ -421,6 +449,56 @@ void m1::InitTema2::RenderMesh(
     mesh->Render();
 }
 
+void m1::InitTema2::RenderTexturedMesh(
+    Mesh* mesh, 
+    Shader* shader,
+    const glm::mat4& modelMatrix,
+    Texture2D* texture1, 
+    Texture2D* texture2)
+{
+    if (!mesh || !shader || !shader->GetProgramID())
+        return;
+
+    // Render an object using the specified shader and the specified position
+    glUseProgram(shader->program);
+
+    // Bind model matrix
+    GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
+    glUniformMatrix4fv(loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    // Bind view matrix
+    glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
+    int loc_view_matrix = glGetUniformLocation(shader->program, "View");
+    glUniformMatrix4fv(loc_view_matrix, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+    // Bind projection matrix
+    glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
+    int loc_projection_matrix = glGetUniformLocation(shader->program, "Projection");
+    glUniformMatrix4fv(loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+    // TODO(student): Set any other shader uniforms that you need
+    int loc_texture_1 = glGetUniformLocation(shader->program, "texture_1");
+    int loc_texture_2 = glGetUniformLocation(shader->program, "texture_2");
+
+    if (texture1)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1->GetTextureID());
+        glUniform1i(loc_texture_1, 0);
+    }
+
+    if (texture2)
+    {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2->GetTextureID());
+        glUniform1i(loc_texture_2, 1);
+    }
+
+    // Draw the object
+    glBindVertexArray(mesh->GetBuffers()->m_VAO);
+    glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
+}
+
 void m1::InitTema2::RenderMeshMinimap(
     Mesh* mesh,
     Shader* shader,
@@ -523,6 +601,16 @@ void m1::InitTema2::RenderBuildings(bool minimap)
     }
 }
 
+void m1::InitTema2::RenderMenu()
+{
+    menu->RenderMenu(shaders);
+}
+
+void m1::InitTema2::RenderStatsText()
+{
+    statsText->RenderStatsText(shaders, kills, landedShots);
+}
+
 void InitTema2::Init()
 {
     LoadSounds();
@@ -544,6 +632,14 @@ void InitTema2::Init()
         shaders[shader->GetName()] = shader;
     }
 
+    {
+        Shader* shader = new Shader("Shader2D");
+        shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "shaders", "VertexShader.glsl"), GL_VERTEX_SHADER);
+        shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "shaders", "FragmentShader.glsl"), GL_FRAGMENT_SHADER);
+        shader->CreateAndLink();
+        shaders[shader->GetName()] = shader;
+    }
+
     // Sets the camera
     camera = new Camera();
     camera->Set(glm::vec3(-5, 2.5f, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
@@ -554,6 +650,8 @@ void InitTema2::Init()
     // Sets the resolution of the small viewport
     glm::ivec2 resolution = window->GetResolution();
     miniViewportArea = ViewportArea(50, 50, (int)(resolution.x / 5.f), (int)(resolution.y / 5.f));
+    CreateMenuEntity(resolution);
+    CreateStatsTextEntity(resolution);
 }
 
 void InitTema2::PositionCameraBehindTank()
@@ -758,11 +856,13 @@ bool m1::InitTema2::CheckBulletTankCollision(m1::Bullet* bullet)
 		if (distanceBetweenTankAndBullet < tankRadius + bulletRadius)
 		{
             enemyTanks[i]->Damage();
+            landedShots++;
             if (enemyTanks[i]->GetDamage() > enemyTanks[i]->GetMaxDamage())
             {
 				enemyTanks.erase(enemyTanks.begin() + i);
 				enemyTankMovements.erase(enemyTankMovements.begin() + i);
 				enemyTankPositions.erase(enemyTankPositions.begin() + i);
+                kills++;
             }
 			return true;
 		}
@@ -912,8 +1012,44 @@ void InitTema2::LoopIdle() {
     }
 }
 
+void InitTema2::MenuSetup()
+{
+    RenderMenu();
+    PlaceCameraForMenu();
+}
+
+void InitTema2::MenuActions()
+{
+    if (window->MouseHold(GLFW_MOUSE_BUTTON_LEFT))
+    {
+        int res = menu->CheckButtonPress(window->GetCursorPosition().x, window->GetCursorPosition().y);
+
+        if (res == 1)
+        {
+            isMenu = false;
+        }
+
+        if (res == 2)
+        {
+            exit(0);
+        }
+    }
+}
+
+void InitTema2::PlaceCameraForMenu()
+{
+    camera->Set(glm::vec3(16, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+}
+
 void InitTema2::Update(float deltaTimeSeconds)
 {
+    if (isMenu)
+    {
+        MenuSetup();
+        MenuActions();
+        return;
+    }
+
     LoopMusic();
     LoopIdle();
     RenderGround();
@@ -942,6 +1078,8 @@ void InitTema2::Update(float deltaTimeSeconds)
     CheckAllBulletsBuildingCollisions();
     CheckAllBulletsTankCollisions();
     RenderExplosions();
+
+    RenderStatsText();
 
 
     // Display main elements in the minimap
@@ -987,12 +1125,6 @@ void InitTema2::FrameEnd()
 }
 
 
-/*
- *  These are callback functions. To find more about callbacks and
- *  how they behave, see `input_controller.h`.
- */
-
-
 void InitTema2::OnInputUpdate(float deltaTime, int mods)
 {
     if (window->KeyHold(GLFW_KEY_1))
@@ -1029,8 +1161,11 @@ void InitTema2::OnKeyRelease(int key, int mods)
 
 void InitTema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
-    projectionMatrix = glm::perspective(RADIANS(fov), window->props.aspectRatio, 0.01f, 100.f);
-    PositionCameraThirdPerson(deltaX, deltaY);
+    if (!isMenu)
+    {
+        projectionMatrix = glm::perspective(RADIANS(fov), window->props.aspectRatio, 0.01f, 100.f);
+        PositionCameraThirdPerson(deltaX, deltaY);
+    }
 }
 
 

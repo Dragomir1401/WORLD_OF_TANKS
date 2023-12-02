@@ -14,7 +14,6 @@ uniform mat4 Projection;
 // Output
 out vec2 texcoord;
 
-
 void main()
 {
     texcoord = v_texture_coord;

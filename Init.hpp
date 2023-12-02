@@ -13,6 +13,9 @@
 #include "Sky.hpp"
 #include "Explosion.hpp"
 #include "Audio.hpp"
+#include "Menu.hpp"
+#include "components/text_renderer.h"
+#include "StatsText.hpp"
 #define NUM_ENEMY_TANKS 5
 
 namespace m1 {
@@ -38,6 +41,12 @@ namespace m1 {
 }
 namespace m1 {
 	class Explosion; // Forward declaration
+}
+namespace m1 {
+	class Menu; // Forward declaration
+}
+namespace m1 {
+	class StatsText; // Forward declaration
 }
 
 
@@ -84,6 +93,12 @@ namespace m1
             Shader* shader, 
             const glm::mat4& modelMatrix,
             float damageGrade = 0.0f);
+        void RenderTexturedMesh(
+            Mesh* mesh,
+            Shader* shader,
+            const glm::mat4& modelMatrix,
+            Texture2D* texture1,
+            Texture2D* texture2);
         static void RenderMeshMinimap(
             Mesh* mesh,
             Shader* shader,
@@ -106,6 +121,8 @@ namespace m1
         void CreateSkyEntity();
         void CreateBuildingEntity();
         void CreateExplosionEntity();
+        void CreateMenuEntity(glm::ivec2 resolution);
+        void CreateStatsTextEntity(glm::ivec2 resolution);
         void LoadSounds();
 
         void RenderTankEntity(bool minimap = false);
@@ -138,6 +155,8 @@ namespace m1
         void RenderGround(bool minimap = false);
         void RenderSky();
         void RenderBuildings(bool minimap = false);
+        void RenderMenu();
+        void RenderStatsText();
         void UpdateBasedOnTankTankCollision(
             Tank* tank, 
             TankMovement* tankMovement, 
@@ -160,7 +179,9 @@ namespace m1
         void UpdateMinimap();
         void LoopMusic();
         void LoopIdle();
-
+        void MenuSetup();
+        void MenuActions();
+        void PlaceCameraForMenu();
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;
@@ -169,6 +190,8 @@ namespace m1
         m1::Ground* ground = nullptr;
         m1::Sky* sky = nullptr;
         m1::Building* building = nullptr;
+        m1::Menu* menu = nullptr;
+        m1::StatsText* statsText = nullptr;
         std::vector<m1::Tank*> enemyTanks;
         std::vector<m1::TankMovement*> enemyTankMovements;
         std::vector<TankPosition> enemyTankPositions;
@@ -181,6 +204,7 @@ namespace m1
         std::unordered_map<std::string, Mesh*> buildingObjects;
         std::unordered_map<std::string, Mesh*> skyObjects;
         std::unordered_map<std::string, Mesh*> explosionObjects;
+        std::unordered_map<std::string, Mesh*> menuObjects;
         glm::vec3 initialCameraPosition = glm::vec3(0, 0, 0);
         glm::vec3 lastTuretRotation = glm::vec3(0, 0, 0);
         ViewportArea miniViewportArea;
@@ -201,5 +225,11 @@ namespace m1
         float lastTimeEngineIdle = 0;
         float lastTimeEngineWorking = 0;
         std::vector<bool> firstExplisonFrames = { true };
+
+        bool isMenu = true;
+        gfxc::TextRenderer* textRenderer;
+        gfxc::TextRenderer* statsRenderer;
+        int kills = 0;
+        int landedShots = 0;
     };
 } // namespace m1

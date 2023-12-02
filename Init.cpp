@@ -652,7 +652,7 @@ void m1::InitTema2::ShootOnLeftClick()
 				helicopterPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
 				currentTime,
                 true,
-                0.6);
+                0.6f);
         }
 
         bullets.push_back(bullet);
@@ -787,10 +787,10 @@ void InitTema2::PositionCameraBehindEntity(TankMovement* movement)
     {
 		distanceBehind = 7.5f;
 	}
-    float elevation = 2.5f + movement->tankTranslate.y;
+    float elevation = 2.5f + tank->GetInitialPosition().y;
     if (helicopterPerspective)
     {
-        elevation += 2.5f;
+        elevation += 5.0f + helicopter->GetInitialPosition().y;
     }
     glm::vec3 cameraPosition = movement->tankTranslate - forwardDir * distanceBehind + glm::vec3(0, elevation, 0);
 
@@ -1035,6 +1035,27 @@ void m1::InitTema2::UpdateBasedOnTankBuildingCollision(Tank* tank, TankMovement*
 	}
 }
 
+void m1::InitTema2::UpdateBasedOnTankMapBorderCollision(Tank* tank, TankMovement* tankMovement, int tankId)
+{
+    glm::vec3 tankPosition = tank->GetInitialPosition() + tankMovement->tankTranslate;
+    float skyRadius = sky->GetSkyRadius();
+    float distanceFromCenter = glm::length(tankPosition);
+
+    if (distanceFromCenter > skyRadius - tank->GetTankRadius())
+    {
+        float overshoot = distanceFromCenter - (skyRadius - tank->GetTankRadius());
+
+        glm::vec3 directionToCenter = -glm::normalize(tankPosition);
+
+        tankMovement->tankTranslate += overshoot * directionToCenter;
+
+        if (tankId == -1 && !helicopterPerspective)
+        {
+            PositionCameraBehindEntity(tankMovement);
+        }
+    }
+}
+
 bool m1::InitTema2::CheckBulletBuildingCollision(m1::Bullet* bullet)
 {
     // For each building
@@ -1263,7 +1284,7 @@ void InitTema2::MenuActions()
 {
     if (window->MouseHold(GLFW_MOUSE_BUTTON_LEFT))
     {
-        int res = menu->CheckButtonPress(window->GetCursorPosition().x, window->GetCursorPosition().y);
+        int res = menu->CheckButtonPress((float)(window->GetCursorPosition().x), (float)(window->GetCursorPosition().y));
 
         if (res == 1)
         {
@@ -1323,6 +1344,11 @@ void InitTema2::Update(float deltaTimeSeconds)
     {
         UpdateBasedOnTankTankCollision(enemyTanks[i], enemyTankMovements[i], i);
     }
+    UpdateBasedOnTankMapBorderCollision(tank, tankMovement, -1);
+    for (int i = 0; i < enemyTanks.size(); i++)
+    {
+		UpdateBasedOnTankMapBorderCollision(enemyTanks[i], enemyTankMovements[i], i);
+	}
 
     RenderHelicopterEntity();
     RenderTankEntity();

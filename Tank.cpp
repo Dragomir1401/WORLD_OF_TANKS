@@ -296,6 +296,22 @@ bool m1::Tank::CheckTankIndividualBuildingCollision(
 	return false;
 }
 
+bool m1::Tank::CheckTankMapBorderCollision(
+    Sky* sky,
+    glm::vec3 tankPosition)
+{
+    // If tank movement exceeds tank radius in any direction
+    if (tankPosition.x + this->initialPosition.x > sky->GetSkyRadius() - tankRadius ||
+        tankPosition.x + this->initialPosition.x < -sky->GetSkyRadius() + tankRadius ||
+        tankPosition.z + this->initialPosition.z > sky->GetSkyRadius() - tankRadius ||
+        tankPosition.z + this->initialPosition.z < -sky->GetSkyRadius() + tankRadius)
+    {
+		return true;
+	}
+
+    return false;
+}
+
 bool m1::Tank::CheckTankTankCollision(
     Tank* otherTank,
     glm::vec3 myTankPosition,

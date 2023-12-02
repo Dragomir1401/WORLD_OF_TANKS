@@ -17,7 +17,7 @@
 #include "components/text_renderer.h"
 #include "StatsText.hpp"
 #include "Helicopter.hpp"
-#define NUM_ENEMY_TANKS 5
+#define NUM_ENEMY_TANKS 12
 
 namespace m1 {
     class Bullet; // Forward declaration
@@ -173,6 +173,10 @@ namespace m1
             Tank* tank, 
             TankMovement* tankMovement,
             int tankId);
+        void UpdateBasedOnTankMapBorderCollision(
+			Tank* tank, 
+			TankMovement* tankMovement,
+			int tankId);
         bool CheckBulletBuildingCollision(
             m1::Bullet* bullet);
         void CheckAllBulletsBuildingCollisions();

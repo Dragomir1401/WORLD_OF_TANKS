@@ -9,6 +9,7 @@
 #include "Init.hpp"
 #include "TankMovement.hpp"
 #include "Audio.hpp"
+#include "Sky.hpp"
 
 namespace m1 {
 	class Tank; // Forward declaration
@@ -18,6 +19,9 @@ namespace m1 {
 }
 namespace m1 {
 	class TankMovement; // Forward declaration
+}
+namespace m1 {
+	class Sky; // Forward declaration
 }
 
 namespace m1
@@ -79,6 +83,10 @@ namespace m1
 		bool CheckTankEnemyTanksCollision(
 			std::vector<Tank*> enemyTanks,
 			std::vector<TankMovement*> enemyTanksMovement,
+			glm::vec3 tankPosition);
+
+		bool CheckTankMapBorderCollision(
+			Sky* sky,
 			glm::vec3 tankPosition);
 
 		float GetDamage() { return damage; }

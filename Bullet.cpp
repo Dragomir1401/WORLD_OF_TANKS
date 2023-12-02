@@ -59,6 +59,7 @@ bool m1::Bullet::RendBullet(float currentTime, std::unordered_map<std::string, S
 	modelMatrix = glm::translate(modelMatrix, this->position);
 	modelMatrix = glm::rotate(modelMatrix, RADIANS(270), glm::vec3(0, 1, 0));
 	modelMatrix = glm::rotate(modelMatrix, this->turretRelativeRotationWhenBulletWasShot.y, glm::vec3(0, 1, 0));
+	modelMatrix = glm::rotate(modelMatrix, this->turretRelativeRotationWhenBulletWasShot.z, glm::vec3(0, 0, 1));
 	modelMatrix = glm::scale(modelMatrix, glm::vec3(this->bulletScale));
 
 	m1::InitTema2::RenderMesh(

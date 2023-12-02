@@ -15,8 +15,13 @@ namespace m1
 		Sky(std::unordered_map<std::string, Mesh*> skyObjects);
 		~Sky();
 		void RenderSky(std::unordered_map<std::string, Shader*> shaders);
+		float GetSkyRadius()
+		{
+			return skyRadius;
+		}
 	private:
 		std::unordered_map<std::string, Mesh*> skyObjects;
-		float skyScale = 80.0f;
+		float skyScale = 130.0f;
+		float skyRadius = 130.0f * 1.314f;
 	};
 } // namespace m1

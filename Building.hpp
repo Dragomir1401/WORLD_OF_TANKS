@@ -36,5 +36,6 @@ namespace m1
 		int skipIndex = 0;
 		std::vector<glm::vec3> translations;
 		bool firstIteration = true;
+		int spawnRadius = 50;
 	};
 } // namespace m1

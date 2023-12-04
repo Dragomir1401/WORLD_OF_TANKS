@@ -17,7 +17,7 @@
 #include "components/text_renderer.h"
 #include "StatsText.hpp"
 #include "Helicopter.hpp"
-#define NUM_ENEMY_TANKS 5
+#define NUM_ENEMY_TANKS 20
 
 namespace m1 {
     class Bullet; // Forward declaration
@@ -189,8 +189,8 @@ namespace m1
             m1::Bullet* bullet);
         void CheckAllBulletsTankCollisions();
         float ComputeEnemyTurretDirection(
-            glm::vec3 enemyTankPosition,
-            glm::vec3 playerTankPosition);
+                glm::vec3 source,
+                glm::vec3 target);
         void PositionCameraBehindEntity(TankMovement* movement);
         void InitTema2::UpdateMinimapProjectionAndView(
             glm::vec3 tankPosition);
@@ -201,6 +201,7 @@ namespace m1
         void MenuActions();
         void PlaceCameraForMenu();
         void CloseIfDead();
+        int FindClosestEnemyTank();
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;

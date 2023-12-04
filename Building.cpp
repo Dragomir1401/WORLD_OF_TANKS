@@ -101,9 +101,10 @@ void m1::Building::RenderBuilding(std::unordered_map<std::string, Shader*> shade
 glm::vec3 m1::Building::FindRandomPositionOutsideOfBuilding()
 {
     glm::vec3 position;
-    position.x = (float)(rand() % 15);
+    // Fin a random position with x anz z between -spawnRadius and spawnRadius
+    position.x = (float)((rand() % (spawnRadius * 2)) - spawnRadius);
+    position.z = (float)((rand() % (spawnRadius * 2)) - spawnRadius);
     position.y = 0;
-    position.z = (float)(rand() % 15);
 
     for (int i = 0; i < buildingPositions.size(); i++)
     {

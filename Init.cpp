@@ -355,7 +355,11 @@ void m1::InitTema2::RenderTankEntity(bool minimap)
     glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
     if (helicopterPerspective)
     {
-        mouseRotation = glm::vec3(0, 0, 0);
+        int index = FindClosestEnemyTank();
+        float myTurretDir = ComputeEnemyTurretDirection(
+			tankMovement->tankTranslate + tank->GetInitialPosition(),
+            enemyTanks[index]->GetInitialPosition() + enemyTankMovements[index]->tankTranslate);
+        mouseRotation = glm::vec3(0, myTurretDir, 0);
     }
 
     tankPosition.tankCurrentPosition = tankPosition.tankWorldMatrix[3];
@@ -619,45 +623,78 @@ void m1::InitTema2::RenderMeshMinimap(
 void m1::InitTema2::ShootOnLeftClick()
 {
     // Render the projectile at the tip of the tun when clicking left mouse button
-    if (window->MouseHold(GLFW_MOUSE_BUTTON_LEFT) && currentTime - lastTimeShot > 2.0f)
+    if (currentTime - lastTimeShot > 2.0f)
     {
-        Bullet* bullet;
-        if (!helicopterPerspective)
+        if (window->MouseHold(GLFW_MOUSE_BUTTON_LEFT))
         {
-            glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
-            bullet = new Bullet(
-                tankPosition.tankCurrentPosition,
-                projectileObjects,
-                1,
-                tankMovement->tankRotate,
-                tankPosition.tankWorldMatrix,
-                mouseRotation,
-                tankPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
-                tankPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
-                currentTime);
+            Bullet* bullet;
+            if (!helicopterPerspective)
+            {
+                glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
+
+                bullet = new Bullet(
+                    tankPosition.tankCurrentPosition,
+                    projectileObjects,
+                    1,
+                    tankMovement->tankRotate,
+                    tankPosition.tankWorldMatrix,
+                    mouseRotation,
+                    tankPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
+                    tankPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
+                    currentTime);
+            }
+            else
+            {
+                glm::vec3 helicopterPos = helicopterMovement->tankTranslate + helicopter->GetInitialPosition();
+                bullet = new Bullet(
+                    helicopterPos,
+                    projectileObjects,
+                    1,
+                    helicopterMovement->tankRotate,
+                    helicopterPosition.tankWorldMatrix,
+                    glm::vec3(0, 0, 0),
+                    helicopterPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
+                    helicopterPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
+                    currentTime,
+                    true,
+                    0.6f);
+            }
+
+            bullets.push_back(bullet);
+            lastTimeShot = currentTime;
+
+            sounds.at(SHOOT)->Kill();
+            sounds.at(SHOOT)->Play();
         }
         else
         {
-            glm::vec3 helicopterPos = helicopterMovement->tankTranslate + helicopter->GetInitialPosition();
-            bullet = new Bullet(
-                helicopterPos,
-				projectileObjects,
-				1,
-				helicopterMovement->tankRotate,
-				helicopterPosition.tankWorldMatrix,
-				glm::vec3(0, 0, 0),
-				helicopterPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
-				helicopterPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
-				currentTime,
-                true,
-                0.6f);
-        }
+            if (helicopterPerspective)
+            {
+                int index = FindClosestEnemyTank();
+                float myTurretDir = ComputeEnemyTurretDirection(
+                    tankMovement->tankTranslate + tank->GetInitialPosition(),
+                    enemyTanks[index]->GetInitialPosition() + enemyTankMovements[index]->tankTranslate);
+                glm::vec3 mouseRotation = glm::vec3(0, myTurretDir, 0);
 
-        bullets.push_back(bullet);
-        lastTimeShot = currentTime;
+                Bullet* bullet;
+                bullet = new Bullet(
+                    tankPosition.tankCurrentPosition,
+                    projectileObjects,
+                    1,
+                    tankMovement->tankRotate,
+                    tankPosition.tankWorldMatrix,
+                    mouseRotation,
+                    tankPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
+                    tankPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
+                    currentTime);
 
-        sounds.at(SHOOT)->Kill();
-        sounds.at(SHOOT)->Play();
+                bullets.push_back(bullet);
+                lastTimeShot = currentTime;
+
+                sounds.at(SHOOT)->Kill();
+                sounds.at(SHOOT)->Play();
+            }
+		}
     }
 }
 
@@ -1094,7 +1131,7 @@ void m1::InitTema2::CheckAllBulletsBuildingCollisions()
                 // Add random offset to x and z between -5 and 5
                 position.x += (rand() % 500 - 100) / 100.0f;
                 position.z += (rand() % 500 - 100) / 100.0f;
-                Explosion* explosion = new Explosion(
+                explosion = new Explosion(
 					explosionObjects,
 					position);
 				explosions.push_back(explosion);
@@ -1120,6 +1157,10 @@ bool m1::InitTema2::CheckBulletTankCollision(m1::Bullet* bullet)
 		if (distanceBetweenTankAndBullet < tankRadius + bulletRadius)
 		{
             enemyTanks[i]->Damage();
+            if (helicopterPerspective)
+            {
+                enemyTanks[i]->Damage();
+            }
             landedShots++;
             if (enemyTanks[i]->GetDamage() > enemyTanks[i]->GetMaxDamage())
             {
@@ -1170,9 +1211,9 @@ void m1::InitTema2::CheckAllBulletsTankCollisions()
 }
 
 
-float m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition)
+float m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 source, glm::vec3 target)
 {
-    glm::vec3 direction = glm::normalize(playerTankPosition - enemyTankPosition);
+    glm::vec3 direction = glm::normalize(target - source);
     float angle = atan2(direction.z, direction.x);
 
     if (angle < 0) {
@@ -1324,6 +1365,23 @@ void m1::InitTema2::CloseIfDead()
 			exit(0);
         }
     }
+}
+
+int m1::InitTema2::FindClosestEnemyTank()
+{
+    // Find closest enemy tank position
+    float minDistance = 1000000.0f;
+    int closestEnemyTankIndex = -1;
+    for (int i = 0; i < enemyTanks.size(); i++)
+    {
+		float distance = glm::distance(tankPosition.tankCurrentPosition, enemyTankPositions[i].tankCurrentPosition);
+        if (distance < minDistance)
+        {
+			minDistance = distance;
+			closestEnemyTankIndex = i;
+		}
+	}
+    return closestEnemyTankIndex;
 }
 
 void InitTema2::Update(float deltaTimeSeconds)

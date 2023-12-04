@@ -31,7 +31,8 @@ namespace m1
 	public:
 		Tank(
 			std::unordered_map<std::string, Mesh*> tankObjects,
-			glm::vec3 initialPosition);
+			glm::vec3 initialPosition,
+			bool isEnemy = false);
 		~Tank();
 
 		glm::vec3 GetInitialPosition() { return initialPosition; }
@@ -101,6 +102,6 @@ namespace m1
 		float tankRadius = 5.0f * 0.35f;
 		float damage = 0;
 		float maxDamage = 9.0f;
-		glm::vec3 tankLastTranslate = glm::vec3(0, 0, 0);
+		bool isEnemy = false;
 	};
 } // namespace m1

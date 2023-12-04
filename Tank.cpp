@@ -2,10 +2,12 @@
 
 m1::Tank::Tank(
     std::unordered_map<std::string, Mesh*> tankObjects,
-    glm::vec3 initialPosition)
+    glm::vec3 initialPosition,
+    bool isEnemy)
 {
     this->tankObjects = tankObjects;
     this->initialPosition = initialPosition;
+    this->isEnemy = isEnemy;
 }
 
 m1::Tank::~Tank()
@@ -35,18 +37,6 @@ glm::mat4 m1::Tank::RenderBody(
         m1::InitTema2::RenderMeshMinimap(tankObjects["body"], shaders["ShaderTank"], modelMatrix, damage);
     }
 
-    if (tankAdjustedTranslate.x != tankLastTranslate.z ||
-        tankAdjustedTranslate.z != tankLastTranslate.z)
-    {
-		//this->tankMovingSound->Play();
-        tankLastTranslate = tankAdjustedTranslate;
-	}
-    else if (tankAdjustedTranslate.x == tankLastTranslate.z &&
-            tankAdjustedTranslate.z == tankLastTranslate.z)
-    {
-        //this->tankMovingSound->Stop();
-    }
-
     return modelMatrix;
 }
 
@@ -62,7 +52,10 @@ m1::TurretOrientation m1::Tank::RenderTurret(
     modelMatrix = glm::translate(modelMatrix, initialPosition);
     modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
-    modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+    if (!isEnemy)
+    {
+        modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+    }
     modelMatrix = glm::rotate(modelMatrix, -mouseRotate.y, glm::vec3(0, 1, 0));
 
     if (!minimap)
@@ -94,7 +87,10 @@ void m1::Tank::RenderTun(
     modelMatrix = glm::translate(modelMatrix, initialPosition);
     modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
-    modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+    if (!isEnemy)
+    {
+        modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
+    }
     modelMatrix = glm::rotate(modelMatrix, -mouseRotate.y, glm::vec3(0, 1, 0));
 
     if (!minimap)
@@ -118,7 +114,7 @@ void m1::Tank::RenderWheels(
 {
     glm::vec3 wheelAdjustedTranslate = tankTranslate / wheelScale;
     glm::vec3 wheelAdjustedRotate = tankRotate;
-    int animationIndexReverse = 250 - animationIndex + 1;
+    int animationIndexReverse = 10 - animationIndex + 1;
 
     glm::mat4 intermediateModelMatrix1 = glm::mat4(1);
     glm::mat4 intermediateModelMatrix2 = glm::mat4(1);

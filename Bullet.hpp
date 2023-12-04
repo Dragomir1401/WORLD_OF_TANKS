@@ -36,6 +36,10 @@ namespace m1
 		{
 			return position;
 		}
+		bool IsHelicopterBullet()
+		{
+			return isHelicopterBullet;
+		}
 	private:
 		glm::vec3 position;
 		std::unordered_map<std::string, Mesh*> meshes;
@@ -52,5 +56,6 @@ namespace m1
 		float shootedTime = 0;
 		float bulletSpeed = 0.35f;
 		float bulletRadius = 1.25f;
+		bool isHelicopterBullet = false;
 	};
 } // namespace m1

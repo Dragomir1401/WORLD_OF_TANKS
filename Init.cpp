@@ -68,7 +68,7 @@ void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
 		}
     }
 
-    for (int i = 1; i <= 250; i++)
+    for (int i = 1; i <= 10; i++)
     {
 		string name = "wheel" + to_string(i);
 		string nameObj = "wheel" + to_string(i) + ".obj";
@@ -94,7 +94,7 @@ void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
 			glm::vec3(0, 0, 0),
 			glm::vec3(0, 0, 0),
 			0,
-			250,
+			10,
 			false,
 			m1::TankMovement::TankState::Idle);
     }
@@ -103,7 +103,7 @@ void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
         for (int i = 0; i < numberOfEnemyTanks; i++)
         {
             glm::vec3 initialPosition = building->FindRandomPositionOutsideOfBuilding();
-			Tank* enemyTank = new Tank(enemyTankObjects, initialPosition);
+			Tank* enemyTank = new Tank(enemyTankObjects, initialPosition, true);
 			enemyTanks.push_back(enemyTank);
 
             TankMovement* enemyTankMovement = new TankMovement(
@@ -111,7 +111,7 @@ void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
                                                 glm::vec3(0, 0, 0),
                                                 glm::vec3(0, 0, 0),
                                                 0,
-                                                250,
+                                                10,
                                                 false,
                                                 m1::TankMovement::TankState::Idle);
             enemyTankMovements.push_back(enemyTankMovement);
@@ -420,17 +420,10 @@ void m1::InitTema2::RenderEnemyTankEntity(bool minimap)
     {
         float worldTurretRotation = ComputeEnemyTurretDirection(
             enemyTankMovements[i]->tankTranslate + enemyTanks[i]->GetInitialPosition(),
-            tankMovement->tankTranslate + tank->GetInitialPosition());      
+            tank->GetInitialPosition() + tankMovement->tankTranslate);
 
-        // Convert world rotation to tank-relative rotation
-        float tankBodyRotationY = enemyTankMovements[i]->tankRotate.y;
-        float turretRelativeRotationY = worldTurretRotation - tankBodyRotationY;
+        glm::vec3 turretDirection = glm::vec3(0, worldTurretRotation, 0);
 
-        // Normalize the turret rotation angle
-        turretRelativeRotationY = NormalizeAngle(turretRelativeRotationY);
-
-        glm::vec3 turretDirection = glm::vec3(0, turretRelativeRotationY, 0);
-        // moving tank to
         enemyTankPositions[i].tankWorldMatrix = enemyTanks[i]->RenderBody(
             shaders,
             enemyTankMovements[i]->tankTranslate,
@@ -478,6 +471,11 @@ void m1::InitTema2::RenderExplosions(bool minimap)
         {
             // Compute distance between my tank and explosion
             float distance = glm::distance(tankMovement->tankTranslate + tank->GetInitialPosition(), explosions[i]->GetPosition());
+
+            if (helicopterPerspective)
+            {
+                distance = glm::distance(helicopterMovement->tankTranslate + helicopter->GetInitialPosition(), explosions[i]->GetPosition());
+            }
 
             // Play the explosion sound based on the distance
             if (distance < 10)
@@ -818,13 +816,13 @@ void InitTema2::UpdateAnimationTrackers(bool &animationIncreaser, TankMovement* 
             tankMovement->animationIndex--;
             if (tankMovement->animationIndex < 1)
             {
-                tankMovement->animationIndex = 250;
+                tankMovement->animationIndex = 10;
             }
         }
         else if (animationIncreaser == true)
         {
             tankMovement->animationIndex++;
-            if (tankMovement->animationIndex > 250)
+            if (tankMovement->animationIndex > 10)
             {
                 tankMovement->animationIndex = 1;
             }
@@ -1089,6 +1087,20 @@ void m1::InitTema2::CheckAllBulletsBuildingCollisions()
             explosions.push_back(explosion);
             firstExplisonFrames.push_back(true);
 
+            // Add an addtional explosion if it is an helicopter bullet
+            if (bullets[i]->IsHelicopterBullet())
+            {
+                glm::vec3 position = bullets[i]->GetBulletPosition();
+                // Add random offset to x and z between -5 and 5
+                position.x += (rand() % 500 - 100) / 100.0f;
+                position.z += (rand() % 500 - 100) / 100.0f;
+                Explosion* explosion = new Explosion(
+					explosionObjects,
+					position);
+				explosions.push_back(explosion);
+                firstExplisonFrames.push_back(true);
+			}
+
 			bullets.erase(bullets.begin() + i);
 		}
 	}
@@ -1138,46 +1150,37 @@ void m1::InitTema2::CheckAllBulletsTankCollisions()
 			explosions.push_back(explosion);
             firstExplisonFrames.push_back(true);
 
+            // Add an addtional explosion if it is an helicopter bullet
+            if (bullets[i]->IsHelicopterBullet())
+            {
+                glm::vec3 position = bullets[i]->GetBulletPosition();
+                // Add random offset to x and z between -5 and 5
+                position.x += (rand() % 500 - 100) / 100.0f;
+                position.z += (rand() % 500 - 100) / 100.0f;
+                Explosion* explosion = new Explosion(
+                    explosionObjects,
+                    position);
+                explosions.push_back(explosion);
+                firstExplisonFrames.push_back(true);
+            }
+
 			bullets.erase(bullets.begin() + i);
 		}
 	}
 }
 
-//float m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
-//    const glm::vec3 vectorToPlayer = normalize(enemyTankPosition - playerTankPosition);
-//    float newRotation = -DEGREES((vectorToPlayer.z > 0.0f) ? M_PI - asin(vectorToPlayer.x) : asin(vectorToPlayer.x));
-//
-//    return newRotation;
-//}
 
-//float m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
-//    const glm::vec3 vectorToPlayer = normalize(playerTankPosition - enemyTankPosition);
-//    float newRotation = atan2(vectorToPlayer.x, vectorToPlayer.z);
-//    return newRotation; // Make sure this is in the correct format (radians or degrees) as expected by your engine
-//}
+float m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition)
+{
+    glm::vec3 direction = glm::normalize(playerTankPosition - enemyTankPosition);
+    float angle = atan2(direction.z, direction.x);
 
-float m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
-    glm::vec3 vectorToPlayer = normalize(playerTankPosition - enemyTankPosition);
-    float newRotation = atan2(vectorToPlayer.x, vectorToPlayer.z);
-    return newRotation; // Ensure this is in radians or degrees as needed
+    if (angle < 0) {
+        angle += 2 * glm::pi<float>();
+    }
+
+    return angle;
 }
-
-//glm::vec3 m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, glm::vec3 playerTankPosition) {
-//    glm::vec3 direction = playerTankPosition - enemyTankPosition;
-//    direction = glm::normalize(direction);
-//
-//    glm::vec3 turretRotation = glm::vec3(0, 0, 0);
-//
-//    // Compute rotation around Y-axis to face the player tank
-//    float rotationAngle = atan2(direction.x, direction.z);
-//    turretRotation.y = rotationAngle;
-//
-//    // Assuming no rotation around X and Z axes
-//    turretRotation.x = 0;
-//    turretRotation.z = 0;
-//
-//    return turretRotation;
-//}
 
 
 void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {

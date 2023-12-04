@@ -24,6 +24,7 @@ m1::Bullet::Bullet(
 	this->turretWorldMatrixWhenBulletWasShot = turretWorldMatrixWhenBulletWasShot;
 	this->shootedTime = shootedTime;
 	this->bulletScale = bulletScale;
+	this->isHelicopterBullet = helicopter;
 
 	if (!helicopter)
 	{

@@ -17,7 +17,7 @@
 #include "components/text_renderer.h"
 #include "StatsText.hpp"
 #include "Helicopter.hpp"
-#define NUM_ENEMY_TANKS 12
+#define NUM_ENEMY_TANKS 5
 
 namespace m1 {
     class Bullet; // Forward declaration

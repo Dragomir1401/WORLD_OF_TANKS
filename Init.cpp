@@ -673,9 +673,6 @@ void m1::InitTema2::ShootOnLeftClick()
     {
         if (helicopterPerspective)
         {
-            /*float myTurretDir = ComputeEnemyTurretDirection(
-                tankMovement->tankTranslate + tank->GetInitialPosition(),
-                enemyTanks[closestTankIndex]->GetInitialPosition() + enemyTankMovements[closestTankIndex]->tankTranslate);*/
             glm::vec3 mouseRotation = glm::vec3(0, turretAngle, 0);
 
             Bullet* bullet;
@@ -693,9 +690,6 @@ void m1::InitTema2::ShootOnLeftClick()
 
             bullets.push_back(bullet);
             lastTimeShotNPC = currentTime;
-
-            sounds.at(SHOOT)->Kill();
-            sounds.at(SHOOT)->Play();
         }
 	}
 }

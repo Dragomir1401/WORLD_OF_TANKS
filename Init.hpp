@@ -152,8 +152,13 @@ namespace m1
             bool& animationIncreaser,
             m1::TankMovement* tankMovement);
         void DetectInput();
-        void RandomizeEnemyTankMovement(
+        void RandomizeEnemyTanksMovement(
             float deltaTime);
+        void RandomizeTankMovement(glm::vec3 myTankPosition,
+            float moveSpeed,
+            float deltaTime,
+            TankMovement* tankMovement,
+            TankPosition tankPosition);
         glm::vec3 ComputeRotationBasedOnMouse();
         void PositionCameraThirdPerson(
             int deltaX, 

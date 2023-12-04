@@ -1183,34 +1183,42 @@ float m1::InitTema2::ComputeEnemyTurretDirection(glm::vec3 enemyTankPosition, gl
 }
 
 
-void m1::InitTema2::RandomizeEnemyTankMovement(float deltaTime) {
+void m1::InitTema2::RandomizeEnemyTanksMovement(float deltaTime) {
     glm::vec3 myTankPosition = tankPosition.tankCurrentPosition;
     float moveSpeed = 0.7f;
 
     for (int i = 0; i < enemyTanks.size(); i++)
     {
         //enemyTankMovements[i]->UpdateMovementState(enemyTankPositions[i].tankCurrentPosition, myTankPosition);
-
-        enemyTankMovements[i]->tankState = TankMovement::TankState::Idle;
-        switch (enemyTankMovements[i]->tankState)
-        {
-        case m1::TankMovement::TankState::Chase:
-            enemyTankMovements[i]->MoveTowards(myTankPosition, moveSpeed, deltaTime, enemyTankPositions[i].tankCurrentPosition);
-            break;
-        case m1::TankMovement::TankState::Flee:
-            enemyTankMovements[i]->MoveAway(myTankPosition, moveSpeed, deltaTime, enemyTankPositions[i].tankCurrentPosition);
-            break;
-        case m1::TankMovement::TankState::Idle:
-            enemyTankMovements[i]->IdleMove(currentTime, enemyTanks[i], building);
-            break;
-        default:
-            enemyTankMovements[i]->IdleMove(currentTime, enemyTanks[i], building);
-            break;
-        }
-
-        // Update animation trackers for the movement
-        UpdateAnimationTrackers(enemyTankMovements[i]->animationIncreaser, enemyTankMovements[i]);
+        RandomizeTankMovement(myTankPosition, moveSpeed, deltaTime, enemyTankMovements[i], enemyTankPositions[i]);
     }
+}
+
+void m1::InitTema2::RandomizeTankMovement(
+    glm::vec3 myTankPosition,
+    float moveSpeed,
+    float deltaTime, 
+    TankMovement* tankMovement,
+    TankPosition tankPosition)
+{
+    switch (tankMovement->tankState)
+    {
+    case m1::TankMovement::TankState::Chase:
+        tankMovement->MoveTowards(myTankPosition, moveSpeed, deltaTime, tankPosition.tankCurrentPosition);
+        break;
+    case m1::TankMovement::TankState::Flee:
+        tankMovement->MoveAway(myTankPosition, moveSpeed, deltaTime, tankPosition.tankCurrentPosition);
+        break;
+    case m1::TankMovement::TankState::Idle:
+        tankMovement->IdleMove(currentTime, tank, building);
+        break;
+    default:
+        tankMovement->IdleMove(currentTime, tank, building);
+        break;
+    }
+
+    // Update animation trackers for the movement
+    UpdateAnimationTrackers(tankMovement->animationIncreaser, tankMovement);
 }
 
 
@@ -1334,8 +1342,12 @@ void InitTema2::Update(float deltaTimeSeconds)
     RenderBuildings();
     RenderSky();
 
-    RandomizeEnemyTankMovement(deltaTimeSeconds);
+    RandomizeEnemyTanksMovement(deltaTimeSeconds);
     DetectInput();
+    if (helicopterPerspective)
+    {
+        RandomizeTankMovement(tankPosition.tankCurrentPosition, 0.7f, deltaTimeSeconds, tankMovement, tankPosition);
+    }
 
     UpdateBasedOnTankBuildingCollision(tank, tankMovement, -1);
     for (int i = 0; i < enemyTanks.size(); i++)

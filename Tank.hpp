@@ -32,7 +32,8 @@ namespace m1
 		Tank(
 			std::unordered_map<std::string, Mesh*> tankObjects,
 			glm::vec3 initialPosition,
-			bool isEnemy = false);
+			bool isEnemy = false,
+			bool isNPC = false);
 		~Tank();
 
 		glm::vec3 GetInitialPosition() { return initialPosition; }
@@ -93,6 +94,7 @@ namespace m1
 		float GetDamage() { return damage; }
 		void Damage() { damage += 1.2f; }
 		float GetMaxDamage() { return maxDamage; }
+		void SetIsNPC(bool isNPC) { this->isNPC = isNPC; }
 
 	private:
 		std::unordered_map<std::string, Mesh*> tankObjects;
@@ -103,5 +105,6 @@ namespace m1
 		float damage = 0;
 		float maxDamage = 9.0f;
 		bool isEnemy = false;
+		bool isNPC = false;
 	};
 } // namespace m1

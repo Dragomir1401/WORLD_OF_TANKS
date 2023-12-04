@@ -87,7 +87,7 @@ void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
 
     if (!isEnemy)
     {
-        tank = new Tank(tankObjects, glm::vec3(0, 0, 0));
+        tank = new Tank(tankObjects, glm::vec3(0, 0, 0), false);
 
         tankMovement = new TankMovement(
 			glm::vec3(0, 0, 0),
@@ -103,7 +103,7 @@ void m1::InitTema2::CreateTankEntity(string sourceObjDirTank, bool isEnemy)
         for (int i = 0; i < numberOfEnemyTanks; i++)
         {
             glm::vec3 initialPosition = building->FindRandomPositionOutsideOfBuilding();
-			Tank* enemyTank = new Tank(enemyTankObjects, initialPosition, true);
+			Tank* enemyTank = new Tank(enemyTankObjects, initialPosition, true, false);
 			enemyTanks.push_back(enemyTank);
 
             TankMovement* enemyTankMovement = new TankMovement(
@@ -355,11 +355,11 @@ void m1::InitTema2::RenderTankEntity(bool minimap)
     glm::vec3 mouseRotation = ComputeRotationBasedOnMouse();
     if (helicopterPerspective)
     {
-        int index = FindClosestEnemyTank();
-        float myTurretDir = ComputeEnemyTurretDirection(
+        closestTankIndex = FindClosestEnemyTank();
+        turretAngle = ComputeEnemyTurretDirection(
 			tankMovement->tankTranslate + tank->GetInitialPosition(),
-            enemyTanks[index]->GetInitialPosition() + enemyTankMovements[index]->tankTranslate);
-        mouseRotation = glm::vec3(0, myTurretDir, 0);
+            enemyTanks[closestTankIndex]->GetInitialPosition() + enemyTankMovements[closestTankIndex]->tankTranslate);
+        mouseRotation = glm::vec3(0, turretAngle, 0);
     }
 
     tankPosition.tankCurrentPosition = tankPosition.tankWorldMatrix[3];
@@ -641,6 +641,7 @@ void m1::InitTema2::ShootOnLeftClick()
                     mouseRotation,
                     tankPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
                     tankPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
+                    BulletType::NormalBullet,
                     currentTime);
             }
             else
@@ -655,8 +656,8 @@ void m1::InitTema2::ShootOnLeftClick()
                     glm::vec3(0, 0, 0),
                     helicopterPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
                     helicopterPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
+                    BulletType::HelicopterBullet,
                     currentTime,
-                    true,
                     0.6f);
             }
 
@@ -666,48 +667,53 @@ void m1::InitTema2::ShootOnLeftClick()
             sounds.at(SHOOT)->Kill();
             sounds.at(SHOOT)->Play();
         }
-        else
-        {
-            if (helicopterPerspective)
-            {
-                int index = FindClosestEnemyTank();
-                float myTurretDir = ComputeEnemyTurretDirection(
-                    tankMovement->tankTranslate + tank->GetInitialPosition(),
-                    enemyTanks[index]->GetInitialPosition() + enemyTankMovements[index]->tankTranslate);
-                glm::vec3 mouseRotation = glm::vec3(0, myTurretDir, 0);
-
-                Bullet* bullet;
-                bullet = new Bullet(
-                    tankPosition.tankCurrentPosition,
-                    projectileObjects,
-                    1,
-                    tankMovement->tankRotate,
-                    tankPosition.tankWorldMatrix,
-                    mouseRotation,
-                    tankPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
-                    tankPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
-                    currentTime);
-
-                bullets.push_back(bullet);
-                lastTimeShot = currentTime;
-
-                sounds.at(SHOOT)->Kill();
-                sounds.at(SHOOT)->Play();
-            }
-		}
     }
+
+    if (currentTime - lastTimeShotNPC > 2.0f)
+    {
+        if (helicopterPerspective)
+        {
+            /*float myTurretDir = ComputeEnemyTurretDirection(
+                tankMovement->tankTranslate + tank->GetInitialPosition(),
+                enemyTanks[closestTankIndex]->GetInitialPosition() + enemyTankMovements[closestTankIndex]->tankTranslate);*/
+            glm::vec3 mouseRotation = glm::vec3(0, turretAngle, 0);
+
+            Bullet* bullet;
+            bullet = new Bullet(
+                tankPosition.tankCurrentPosition,
+                projectileObjects,
+                1,
+                tankMovement->tankRotate,
+                tankPosition.tankWorldMatrix,
+                mouseRotation,
+                tankPosition.turretOrientation.turretRelativeRotationWhenBulletWasShot,
+                tankPosition.turretOrientation.turretWorldMatrixWhenBulletWasShot,
+                BulletType::NPCBullet,
+                currentTime);
+
+            bullets.push_back(bullet);
+            lastTimeShotNPC = currentTime;
+
+            sounds.at(SHOOT)->Kill();
+            sounds.at(SHOOT)->Play();
+        }
+	}
 }
 
 void m1::InitTema2::MoveBulletsInLine()
 {
     for (auto &bullet : bullets)
     {
-        bool res;
-        if (!helicopterPerspective)
+        bool res = true;
+        if (bullet->GetBulletType() == BulletType::NormalBullet)
         {
             res = bullet->RendBullet(currentTime, shaders);
         }
-        else
+        else if (bullet->GetBulletType() == BulletType::NPCBullet)
+        {
+            res = bullet->RendBulletNPC(currentTime, shaders);
+        }
+        else if (bullet->GetBulletType() == BulletType::HelicopterBullet)
         {
             res = bullet->RendHelicopterBullet(currentTime, shaders);
         }
@@ -1125,7 +1131,7 @@ void m1::InitTema2::CheckAllBulletsBuildingCollisions()
             firstExplisonFrames.push_back(true);
 
             // Add an addtional explosion if it is an helicopter bullet
-            if (bullets[i]->IsHelicopterBullet())
+            if (bullets[i]->GetBulletType() == BulletType::HelicopterBullet)
             {
                 glm::vec3 position = bullets[i]->GetBulletPosition();
                 // Add random offset to x and z between -5 and 5
@@ -1192,13 +1198,13 @@ void m1::InitTema2::CheckAllBulletsTankCollisions()
             firstExplisonFrames.push_back(true);
 
             // Add an addtional explosion if it is an helicopter bullet
-            if (bullets[i]->IsHelicopterBullet())
+            if (bullets[i]->GetBulletType() == BulletType::HelicopterBullet)
             {
                 glm::vec3 position = bullets[i]->GetBulletPosition();
                 // Add random offset to x and z between -5 and 5
                 position.x += (rand() % 500 - 100) / 100.0f;
                 position.z += (rand() % 500 - 100) / 100.0f;
-                Explosion* explosion = new Explosion(
+                explosion = new Explosion(
                     explosionObjects,
                     position);
                 explosions.push_back(explosion);
@@ -1400,6 +1406,14 @@ void InitTema2::Update(float deltaTimeSeconds)
     RenderBuildings();
     RenderSky();
 
+    if (!helicopterPerspective)
+    {
+        tank->SetIsNPC(false);
+	}
+    else
+    {
+		tank->SetIsNPC(true);
+	}
     RandomizeEnemyTanksMovement(deltaTimeSeconds);
     DetectInput();
     if (helicopterPerspective)

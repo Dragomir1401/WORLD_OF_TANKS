@@ -21,13 +21,14 @@ namespace m1
 			glm::vec3 mouseRotationWhenBulletWasShot,
 			glm::vec3 turretRelativeRotationWhenBulletWasShot,
 			glm::mat4 turretWorldMatrixWhenBulletWasShot,
+			int bulletType,
 			float shootedTime,
-			bool helicopter = false,
 			float bulletScale = 0.3f
 			);
 		~Bullet();
 		bool RendBullet(float currentTime, std::unordered_map<std::string, Shader*> shaders);
 		bool RendHelicopterBullet(float currentTime, std::unordered_map<std::string, Shader*> shaders);
+		bool RendBulletNPC(float currentTime, std::unordered_map<std::string, Shader*> shaders);
 		float GetBulletRadius()
 		{
 			return bulletRadius * bulletScale;
@@ -36,9 +37,9 @@ namespace m1
 		{
 			return position;
 		}
-		bool IsHelicopterBullet()
+		int GetBulletType()
 		{
-			return isHelicopterBullet;
+			return bulletType;
 		}
 	private:
 		glm::vec3 position;
@@ -56,6 +57,6 @@ namespace m1
 		float shootedTime = 0;
 		float bulletSpeed = 0.35f;
 		float bulletRadius = 1.25f;
-		bool isHelicopterBullet = false;
+		int bulletType;
 	};
 } // namespace m1

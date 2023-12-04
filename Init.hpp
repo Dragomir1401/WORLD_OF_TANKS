@@ -90,6 +90,14 @@ namespace m1
             DIED,
             HELICOPTER
 		};
+
+        enum BulletType
+        {
+            NormalBullet,
+            HelicopterBullet,
+            NPCBullet
+        };
+
         InitTema2();
         ~InitTema2();
 
@@ -236,6 +244,7 @@ namespace m1
         float cameraSpeed = 200.0f;
         float currentTime = 0;
         float lastTimeShot = 0;
+        float lastTimeShotNPC = 0;
         float fov = 60;
         int numberOfEnemyTanks = NUM_ENEMY_TANKS;
 
@@ -259,5 +268,8 @@ namespace m1
         float counterSinceDeath = 0;
         bool helicopterPerspective = false;
         float helicopterHeightOfFlying = 5;
+        bool myTankIsNPC = false;
+        int closestTankIndex = -1;
+        float turretAngle = 0;
     };
 } // namespace m1

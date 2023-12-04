@@ -3,11 +3,13 @@
 m1::Tank::Tank(
     std::unordered_map<std::string, Mesh*> tankObjects,
     glm::vec3 initialPosition,
-    bool isEnemy)
+    bool isEnemy,
+    bool isNPC)
 {
     this->tankObjects = tankObjects;
     this->initialPosition = initialPosition;
     this->isEnemy = isEnemy;
+    this->isNPC = isNPC;
 }
 
 m1::Tank::~Tank()
@@ -52,7 +54,7 @@ m1::TurretOrientation m1::Tank::RenderTurret(
     modelMatrix = glm::translate(modelMatrix, initialPosition);
     modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
-    if (!isEnemy)
+    if (!isEnemy && !isNPC)
     {
         modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
     }
@@ -87,7 +89,7 @@ void m1::Tank::RenderTun(
     modelMatrix = glm::translate(modelMatrix, initialPosition);
     modelMatrix = glm::scale(modelMatrix, glm::vec3(tankScale));
     modelMatrix = glm::translate(modelMatrix, tankAdjustedTranslate);
-    if (!isEnemy)
+    if (!isEnemy && !isNPC)
     {
         modelMatrix = glm::rotate(modelMatrix, tankRotate.y, glm::vec3(0, 1, 0));
     }

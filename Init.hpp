@@ -210,6 +210,7 @@ namespace m1
         void PlaceCameraForMenu();
         void CloseIfDead();
         int FindClosestEnemyTank();
+        void MakeEnemiesShoot();
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;
@@ -271,5 +272,6 @@ namespace m1
         bool myTankIsNPC = false;
         int closestTankIndex = -1;
         float turretAngle = 0;
+        std::vector<float> enemyShootingTimes;
     };
 } // namespace m1

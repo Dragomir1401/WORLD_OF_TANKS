@@ -811,6 +811,11 @@ void InitTema2::Init()
     miniViewportArea = ViewportArea(50, 50, (int)(resolution.x / 5.f), (int)(resolution.y / 5.f));
     CreateMenuEntity(resolution);
     CreateStatsTextEntity(resolution);
+
+    for (int i = 0; i < enemyTanks.size(); i++)
+    {
+        enemyShootingTimes.push_back(0.0f);
+	}
 }
 
 void InitTema2::PositionCameraBehindEntity(TankMovement* movement)
@@ -1384,6 +1389,41 @@ int m1::InitTema2::FindClosestEnemyTank()
     return closestEnemyTankIndex;
 }
 
+void m1::InitTema2::MakeEnemiesShoot()
+{
+    // Every 2 seconds, make enemies closer than 15 units shoot
+    for (int i = 0; i < enemyTanks.size(); i++)
+    {
+		float distance = glm::distance(tankPosition.tankCurrentPosition, enemyTankPositions[i].tankCurrentPosition);
+        if (distance < 15.0f)
+        {
+            if (currentTime - enemyShootingTimes[i] > 4.0f)
+            {
+                float turretAngle = ComputeEnemyTurretDirection(
+					enemyTankPositions[i].tankCurrentPosition,
+					tankPosition.tankCurrentPosition);
+				glm::vec3 mouseRotation = glm::vec3(0, turretAngle, 0);
+
+				Bullet* bullet;
+                bullet = new Bullet(
+					enemyTankPositions[i].tankCurrentPosition,
+					projectileObjects,
+					1,
+					enemyTankMovements[i]->tankRotate,
+					enemyTankPositions[i].tankWorldMatrix,
+					mouseRotation,
+					enemyTankPositions[i].turretOrientation.turretRelativeRotationWhenBulletWasShot,
+					enemyTankPositions[i].turretOrientation.turretWorldMatrixWhenBulletWasShot,
+					BulletType::NPCBullet,
+					currentTime);
+
+				bullets.push_back(bullet);
+                enemyShootingTimes[i] = currentTime;
+			}
+		}
+	}
+}
+
 void InitTema2::Update(float deltaTimeSeconds)
 {
     if (isMenu)
@@ -1436,6 +1476,7 @@ void InitTema2::Update(float deltaTimeSeconds)
     RenderEnemyTankEntity();
 
     ShootOnLeftClick();
+    MakeEnemiesShoot();
     MoveBulletsInLine();
 
     CheckAllBulletsBuildingCollisions();

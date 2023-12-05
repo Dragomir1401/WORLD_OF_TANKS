@@ -1395,7 +1395,7 @@ void m1::InitTema2::MakeEnemiesShoot()
     for (int i = 0; i < enemyTanks.size(); i++)
     {
 		float distance = glm::distance(tankPosition.tankCurrentPosition, enemyTankPositions[i].tankCurrentPosition);
-        if (distance < 15.0f)
+        if (distance < 25.0f)
         {
             if (currentTime - enemyShootingTimes[i] > 4.0f)
             {
@@ -1419,6 +1419,45 @@ void m1::InitTema2::MakeEnemiesShoot()
 
 				bullets.push_back(bullet);
                 enemyShootingTimes[i] = currentTime;
+			}
+		}
+	}
+}
+
+void m1::InitTema2::CheckAllNPCBulletsMyTankCollisions()
+{
+    // Check all NPC bullets that enter the radius of my tank then damage it and create explosion
+    for (int i = 0; i < bullets.size(); i++)
+    {
+        if (bullets[i]->GetBulletType() == BulletType::NPCBullet)
+        {
+			float tankRadius = tank->GetTankRadius();
+			float bulletRadius = bullets[i]->GetBulletRadius();
+
+			float distanceBetweenTankAndBullet = glm::distance(bullets[i]->GetBulletPosition(),
+                				tankPosition.tankCurrentPosition);
+
+            if (distanceBetweenTankAndBullet < tankRadius + bulletRadius)
+            {
+				tank->DamageMyTank();
+                if (tank->GetDamage() > tank->GetMaxDamage())
+                {
+                    if (!counterSinceDeath)
+                    {
+                        // Play the sound only once
+                        sounds.at(DIED)->Kill();
+                        sounds.at(DIED)->Play();
+                    }
+                    counterSinceDeath = currentTime;
+				}
+
+                Explosion* explosion = new Explosion(
+					explosionObjects,
+					bullets[i]->GetBulletPosition());
+				    explosions.push_back(explosion);
+				    firstExplisonFrames.push_back(true);
+
+				bullets.erase(bullets.begin() + i);
 			}
 		}
 	}
@@ -1479,6 +1518,7 @@ void InitTema2::Update(float deltaTimeSeconds)
     MakeEnemiesShoot();
     MoveBulletsInLine();
 
+    CheckAllNPCBulletsMyTankCollisions();
     CheckAllBulletsBuildingCollisions();
     CheckAllBulletsTankCollisions();
     RenderExplosions();

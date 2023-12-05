@@ -17,7 +17,7 @@
 #include "components/text_renderer.h"
 #include "StatsText.hpp"
 #include "Helicopter.hpp"
-#define NUM_ENEMY_TANKS 20
+#define NUM_ENEMY_TANKS 4
 
 namespace m1 {
     class Bullet; // Forward declaration
@@ -211,6 +211,7 @@ namespace m1
         void CloseIfDead();
         int FindClosestEnemyTank();
         void MakeEnemiesShoot();
+        void CheckAllNPCBulletsMyTankCollisions();
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;

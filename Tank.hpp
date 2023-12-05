@@ -94,6 +94,7 @@ namespace m1
 		float GetDamage() { return damage; }
 		void Damage() { damage += 1.2f; }
 		float GetMaxDamage() { return maxDamage; }
+		void DamageMyTank() { damage += 0.3f; }
 		void SetIsNPC(bool isNPC) { this->isNPC = isNPC; }
 
 	private:

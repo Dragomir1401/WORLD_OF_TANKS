@@ -17,7 +17,7 @@
 #include "components/text_renderer.h"
 #include "StatsText.hpp"
 #include "Helicopter.hpp"
-#define NUM_ENEMY_TANKS 4
+#define NUM_ENEMY_TANKS 2
 
 namespace m1 {
     class Bullet; // Forward declaration
@@ -212,6 +212,8 @@ namespace m1
         int FindClosestEnemyTank();
         void MakeEnemiesShoot();
         void CheckAllNPCBulletsMyTankCollisions();
+        void CheckWinCondition();
+        void LoopEndingScene();
         
         float elapsedTime = 0;
         m1::Tank* tank = nullptr;
@@ -268,11 +270,13 @@ namespace m1
         int landedShots = 0;
 
         float counterSinceDeath = 0;
+        float counterSinceWin = 0;
         bool helicopterPerspective = false;
         float helicopterHeightOfFlying = 5;
         bool myTankIsNPC = false;
         int closestTankIndex = -1;
         float turretAngle = 0;
         std::vector<float> enemyShootingTimes;
+        bool setWinTime = false;
     };
 } // namespace m1

@@ -26,6 +26,8 @@ namespace m1
 		void RenderDeathText(
 			std::unordered_map<std::string, Shader*> shaders);
 
+		void RenderWinText(std::unordered_map<std::string, Shader*> shaders);
+
 	private:
 		gfxc::TextRenderer* textRenderer;
 		const glm::vec3 kTextColor = NormalizedRGB(0, 0, 0);

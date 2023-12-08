@@ -24,3 +24,9 @@ void m1::StatsText::RenderDeathText(std::unordered_map<std::string, Shader*> sha
 	// Render "You died!" in the middle of the screen
 	textRenderer->RenderText("You died!", 500.0f, 100.0f, 3.0f, kTextColor);
 }
+
+void m1::StatsText::RenderWinText(std::unordered_map<std::string, Shader*> shaders)
+{
+	// Render "You won!" in the middle of the screen
+	textRenderer->RenderText("You won!", 500.0f, 100.0f, 3.0f, kTextColor);
+}

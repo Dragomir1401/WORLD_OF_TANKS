@@ -1175,6 +1175,13 @@ bool m1::InitTema2::CheckBulletTankCollision(m1::Bullet* bullet)
                 kills++;
                 sounds[FATALITY]->Kill();
                 sounds[FATALITY]->Play();
+
+                numberOfEnemyTanks--;
+                if (numberOfEnemyTanks == 1)
+                {
+					sounds[DIED]->Kill();
+					sounds[DIED]->Play();
+				}
             }
 			return true;
 		}
@@ -1463,8 +1470,50 @@ void m1::InitTema2::CheckAllNPCBulletsMyTankCollisions()
 	}
 }
 
+void m1::InitTema2::CheckWinCondition()
+{
+    if (counterSinceWin)
+	{
+		statsText->RenderWinText(shaders);
+		if (currentTime - counterSinceWin > 5.0f)
+		{
+			exit(0);
+		}
+	}
+}
+
+void m1::InitTema2::LoopEndingScene()
+{
+    // Loop the ending scene with just buildings and sky for 5 seconds
+    RenderGround();
+	RenderBuildings();
+	RenderSky();
+
+    // Render win text if the player won
+	statsText->RenderWinText(shaders);
+}
+
 void InitTema2::Update(float deltaTimeSeconds)
 {
+    if (numberOfEnemyTanks == 1)
+    {
+        if (!setWinTime)
+        {
+            counterSinceWin = currentTime;
+			setWinTime = true;
+        }
+
+        LoopEndingScene();
+
+        if (currentTime - counterSinceWin > 8.0f)
+        {
+            exit(0);
+        }
+
+        currentTime += deltaTimeSeconds;
+        return;
+    }
+
     if (isMenu)
     {
         LoopMusic();
@@ -1482,11 +1531,11 @@ void InitTema2::Update(float deltaTimeSeconds)
     if (!helicopterPerspective)
     {
         tank->SetIsNPC(false);
-	}
+    }
     else
     {
-		tank->SetIsNPC(true);
-	}
+        tank->SetIsNPC(true);
+    }
     RandomizeEnemyTanksMovement(deltaTimeSeconds);
     DetectInput();
     if (helicopterPerspective)
@@ -1497,8 +1546,8 @@ void InitTema2::Update(float deltaTimeSeconds)
     UpdateBasedOnTankBuildingCollision(tank, tankMovement, -1);
     for (int i = 0; i < enemyTanks.size(); i++)
     {
-		UpdateBasedOnTankBuildingCollision(enemyTanks[i], enemyTankMovements[i], i);
-	}
+        UpdateBasedOnTankBuildingCollision(enemyTanks[i], enemyTankMovements[i], i);
+    }
     UpdateBasedOnTankTankCollision(tank, tankMovement, -1);
     for (int i = 0; i < enemyTanks.size(); i++)
     {
@@ -1507,8 +1556,8 @@ void InitTema2::Update(float deltaTimeSeconds)
     UpdateBasedOnTankMapBorderCollision(tank, tankMovement, -1);
     for (int i = 0; i < enemyTanks.size(); i++)
     {
-		UpdateBasedOnTankMapBorderCollision(enemyTanks[i], enemyTankMovements[i], i);
-	}
+        UpdateBasedOnTankMapBorderCollision(enemyTanks[i], enemyTankMovements[i], i);
+    }
 
     RenderHelicopterEntity();
     RenderTankEntity();
@@ -1521,9 +1570,10 @@ void InitTema2::Update(float deltaTimeSeconds)
     CheckAllNPCBulletsMyTankCollisions();
     CheckAllBulletsBuildingCollisions();
     CheckAllBulletsTankCollisions();
-    RenderExplosions();
 
+    RenderExplosions();
     RenderStatsText();
+
 
     // Display main elements in the minimap
     UpdateMinimap();

@@ -49,6 +49,10 @@ namespace m1
             glm::vec3 dir = glm::normalize(glm::vec3(forward.x, 0, forward.z));
             position += dir * distance;
         }
+        void MoveWithDirection(const glm::vec3& direction, float distance)
+        {
+			position += glm::normalize(direction) * distance;
+		}
 
         void TranslateForward(float distance)
         {
@@ -78,6 +82,15 @@ namespace m1
             this->forward = glm::normalize(glm::rotate(glm::mat4(1), angle, glm::vec3(0, 1, 0)) * glm::vec4(forward, 0));
             this->right = glm::normalize(glm::rotate(glm::mat4(1.f), angle, glm::vec3(0, 1, 0)) * glm::vec4(right, 0));
             this->up = glm::normalize(glm::cross(right, forward));
+        }
+
+        void RotateThirdPerson_OY2(float angle, float plus)
+        {
+            TranslateForward(distanceToTarget);
+            RotateFirstPerson_OY(plus);
+            RotateFirstPerson_OY(angle);
+            RotateFirstPerson_OY(-plus);
+            TranslateForward(-distanceToTarget);
         }
 
         void RotateFirstPerson_OZ(float angle)

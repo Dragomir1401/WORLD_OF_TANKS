@@ -801,10 +801,10 @@ void InitTema2::Init()
     float distanceBehind = 5.0f;
     float elevation = 2.5f;
     glm::vec3 cameraPosition = tankMovement->tankTranslate + glm::vec3(0, elevation, 0);
-    camera->Set(cameraPosition, tankMovement->tankTranslate, glm::vec3(0, 1, 0));
-    initialCameraPosition = glm::vec3(-5, 2.5f, 0);
+    //camera->Set(cameraPosition, tankMovement->tankTranslate, glm::vec3(0, 1, 0));
     projectionMatrix = glm::perspective(RADIANS(90), window->props.aspectRatio, 0.01f, 200.0f);
     fov = 80.0f;
+    PositionCameraBehindEntity(tankMovement);
 
     // Sets the resolution of the small viewport
     glm::ivec2 resolution = window->GetResolution();
@@ -873,7 +873,7 @@ void InitTema2::UpdateAnimationTrackers(bool &animationIncreaser, TankMovement* 
     }
 }
 
-void InitTema2::DetectInput()
+void InitTema2::DetectInput(float delta)
 {
     glm::vec3 forwardDir;
     if (!helicopterPerspective)
@@ -885,10 +885,15 @@ void InitTema2::DetectInput()
     {
 		forwardDir = glm::normalize(glm::vec3(cos(helicopterMovement->tankRotate.y), 0, -sin(helicopterMovement->tankRotate.y)));
 	}
-    float moveSpeed = 0.09f;
-    float moveSpeedFast = 0.20f;
-    float moveSpeedSlow = 0.05f;
-    float moveSpeedTurn = 0.03f;
+    float moveSpeed = 0.07f;
+    float moveSpeedFast = 0.15f;
+    float moveSpeedSlow = 0.04f;
+    float moveSpeedTurn = 0.02f;
+
+    if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
+    {
+        PositionCameraBehindEntity(tankMovement);
+    }
 
     if (window->KeyHold(GLFW_KEY_W))
     {
@@ -896,7 +901,6 @@ void InitTema2::DetectInput()
         {
             tankMovement->animationSkipper += 2;
             tankMovement->tankTranslate += moveSpeed * forwardDir;
-            PositionCameraBehindEntity(tankMovement);
 
             if (currentTime > lastTimeEngineWorking + 3.0f)
             {
@@ -904,11 +908,14 @@ void InitTema2::DetectInput()
                 sounds.at(ENGINE_WORKING)->Play();
                 lastTimeEngineWorking = currentTime;
             }
+
+            camera->RotateThirdPerson_OY(cameraRotateY);
+            camera->MoveWithDirection(forwardDir, moveSpeed);
+            camera->RotateThirdPerson_OY(-cameraRotateY);
         }
         else
         {
 			helicopterMovement->tankTranslate += moveSpeed * forwardDir;
-            PositionCameraBehindEntity(helicopterMovement);
         }
     }
 
@@ -918,7 +925,6 @@ void InitTema2::DetectInput()
         {
             tankMovement->animationSkipper += 8;
             tankMovement->tankTranslate += moveSpeedFast * forwardDir;
-            PositionCameraBehindEntity(tankMovement);
 
             if (currentTime > lastTimeEngineWorking + 3.0f)
             {
@@ -926,11 +932,14 @@ void InitTema2::DetectInput()
                 sounds.at(ENGINE_WORKING)->Play();
                 lastTimeEngineWorking = currentTime;
             }
+
+            camera->RotateThirdPerson_OY(cameraRotateY);
+            camera->MoveWithDirection(forwardDir, moveSpeedFast);
+            camera->RotateThirdPerson_OY(-cameraRotateY);
         }
         else
         {
             helicopterMovement->tankTranslate += moveSpeedFast * forwardDir;
-            PositionCameraBehindEntity(helicopterMovement);
         }
     }
 
@@ -941,12 +950,14 @@ void InitTema2::DetectInput()
             tankMovement->tankTranslate += moveSpeedSlow * -forwardDir;
             tankMovement->animationSkipper++;
             tankMovement->animationIncreaser = true;
-            PositionCameraBehindEntity(tankMovement);
+
+            camera->RotateThirdPerson_OY(cameraRotateY);
+            camera->MoveWithDirection(-forwardDir, moveSpeedSlow);
+            camera->RotateThirdPerson_OY(-cameraRotateY);
         }
         else
         {
             helicopterMovement->tankTranslate += moveSpeedSlow * -forwardDir;
-			PositionCameraBehindEntity(helicopterMovement);
         }
     }
 
@@ -957,12 +968,12 @@ void InitTema2::DetectInput()
             tankMovement->tankRotate.y += moveSpeedTurn;
             tankMovement->wheelTilt.y = 0.3f;
             tankMovement->animationSkipper++;
-            PositionCameraBehindEntity(tankMovement);
+
+            camera->RotateThirdPerson_OY(moveSpeedTurn, tankMovement->tankTranslate);
         }
         else
         {
 			helicopterMovement->tankRotate.y += moveSpeedTurn / 3;
-			PositionCameraBehindEntity(helicopterMovement);
         }
     }
 
@@ -973,12 +984,12 @@ void InitTema2::DetectInput()
             tankMovement->tankRotate.y -= moveSpeedTurn;
             tankMovement->wheelTilt.y = -0.3f;
             tankMovement->animationSkipper++;
-            PositionCameraBehindEntity(tankMovement);
+
+            camera->RotateThirdPerson_OY(-moveSpeedTurn, tankMovement->tankTranslate);
         }
         else
         {
             helicopterMovement->tankRotate.y -= moveSpeedTurn / 3;
-            PositionCameraBehindEntity(helicopterMovement);
         }
     }
 
@@ -1177,11 +1188,6 @@ bool m1::InitTema2::CheckBulletTankCollision(m1::Bullet* bullet)
                 sounds[FATALITY]->Play();
 
                 numberOfEnemyTanks--;
-                if (numberOfEnemyTanks == 1)
-                {
-					sounds[DIED]->Kill();
-					sounds[DIED]->Play();
-				}
             }
 			return true;
 		}
@@ -1279,7 +1285,7 @@ glm::vec3 m1::InitTema2::ComputeRotationBasedOnMouse()
 {
     glm::vec3 rotation = glm::vec3(0, 0, 0);
 
-    if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
+    if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT) && !window->KeyHold(GLFW_KEY_LEFT_CONTROL))
     {
 		return lastTuretRotation;
 	}
@@ -1292,7 +1298,7 @@ glm::vec3 m1::InitTema2::ComputeRotationBasedOnMouse()
     float normalizedX = (float)(mouseX - resolution.x / 2) / (resolution.x / 2);
 
     constexpr float maxRotationRadians = glm::half_pi<float>(); // π/2
-    rotation.y = glm::clamp(normalizedX, -1.0f, 1.0f) * maxRotationRadians;
+    rotation.y = glm::clamp(normalizedX, -1.5f, 1.5f) * maxRotationRadians;
 
     rotation.x = 0;
     rotation.z = 0;
@@ -1402,7 +1408,7 @@ void m1::InitTema2::MakeEnemiesShoot()
     for (int i = 0; i < enemyTanks.size(); i++)
     {
 		float distance = glm::distance(tankPosition.tankCurrentPosition, enemyTankPositions[i].tankCurrentPosition);
-        if (distance < 25.0f)
+        if (distance < 35.0f)
         {
             if (currentTime - enemyShootingTimes[i] > 4.0f)
             {
@@ -1495,10 +1501,12 @@ void m1::InitTema2::LoopEndingScene()
 
 void InitTema2::Update(float deltaTimeSeconds)
 {
-    if (numberOfEnemyTanks == 1)
+    if (numberOfEnemyTanks == 1 && enemyTanks[0]->GetDamage() + 3.0f > enemyTanks[0]->GetMaxDamage())
     {
         if (!setWinTime)
         {
+            sounds[DIED]->Kill();
+            sounds[DIED]->Play();
             counterSinceWin = currentTime;
 			setWinTime = true;
         }
@@ -1537,7 +1545,12 @@ void InitTema2::Update(float deltaTimeSeconds)
         tank->SetIsNPC(true);
     }
     RandomizeEnemyTanksMovement(deltaTimeSeconds);
-    DetectInput();
+
+    if (!counterSinceDeath)
+    {
+        DetectInput(deltaTimeSeconds);
+    }
+
     if (helicopterPerspective)
     {
         RandomizeTankMovement(tankPosition.tankCurrentPosition, 0.7f, deltaTimeSeconds, tankMovement, tankPosition);
@@ -1696,7 +1709,13 @@ void InitTema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
     if (!isMenu)
     {
         projectionMatrix = glm::perspective(RADIANS(fov), window->props.aspectRatio, 0.01f, 100.f);
-        PositionCameraThirdPerson(deltaX, deltaY);
+    }
+
+    if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
+    {
+        float rotate = 0.001f * deltaX;
+        camera->RotateThirdPerson_OY(-rotate);
+        cameraRotateY += rotate;
     }
 }
 

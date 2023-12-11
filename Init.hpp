@@ -17,12 +17,12 @@
 #include "components/text_renderer.h"
 #include "StatsText.hpp"
 #include "Helicopter.hpp"
-#define NUM_ENEMY_TANKS 2
+#define NUM_ENEMY_TANKS 15
 
 namespace m1 {
     class Bullet; // Forward declaration
 }
-namespace m1 {
+namespace m1 { 
     class Tank; // Forward declaration
 }
 namespace m1 {
@@ -159,7 +159,7 @@ namespace m1
         void UpdateAnimationTrackers(
             bool& animationIncreaser,
             m1::TankMovement* tankMovement);
-        void DetectInput();
+        void DetectInput(float delta);
         void RandomizeEnemyTanksMovement(
             float deltaTime);
         void RandomizeTankMovement(glm::vec3 myTankPosition,
@@ -278,5 +278,6 @@ namespace m1
         float turretAngle = 0;
         std::vector<float> enemyShootingTimes;
         bool setWinTime = false;
+        float cameraRotateY = 0;
     };
 } // namespace m1
